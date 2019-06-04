@@ -1,0 +1,50 @@
+[General]
+Round=50
+Sklad=42312020314A20202020204654524700
+datadir=c:\Data\
+SoundDir=Sound
+[Registrator]
+COM=3
+baud=115200
+# тип кассы и наличие онлайн-режима
+#type=ШТРИХ-МИНИ-ФР-К
+type=РИТЕЙЛ-01Ф
+online=yes
+[scanner]
+COM=2
+[goldcrown]
+enable=no
+COM=0
+[Display]
+enable=no
+COM=6
+[Log]
+enable=yes
+dir=c:\Data\
+[SQLServer]
+LocalConnectionString=Provider=SQLOLEDB;Integrated security=SSPI;Initial Catalog=DB_CASH;Data Source=localhost\SQLExpress
+CentralConnectionString=Provider=SQLOLEDB;Integrated security=SSPI;Initial Catalog=DB_1C8_1;Data Source=SLON
+#CentralConnectionString=Provider=SQLOLEDB;Integrated security=SSPI;Initial Catalog=DB_1c8;Data Source=OBAMA
+[CopyBillHeader]
+line0="           ДОБРО ПОЖАЛОВАТЬ!"
+line1="        ООО Компания 'КОЛОРЛОН'"
+line2="     Магазин 'Все товары для дома' "
+[SynGivePresents.exe]
+enable=yes
+#ConnectionString=Provider=SQLOLEDB;Integrated security=SSPI;Initial Catalog=DB_1c8_1;Data Source=SLON
+frequency=300
+enablelog=yes
+[synprice.exe]
+enable=yes
+frequency=300
+ConnectionString=Integrated security=SSPI;Initial Catalog=DB_1c8;Data Source=OBAMA
+enablelog=yes
+[synret.exe]
+enable=yes
+frequency=300
+enablelog=yes
+[synstocks.exe]
+enable=yes
+frequency=300
+ConnectionString=Provider=SQLOLEDB;Integrated security=SSPI;Initial Catalog=DB_1c8;Data Source=OBAMA
+enablelog=yes

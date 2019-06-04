@@ -1,0 +1,90 @@
+//---------------------------------------------------------------------------
+
+#include <vcl.h>
+#pragma hdrstop
+
+#include "cash.h"
+#include "mainform.h"
+//---------------------------------------------------------------------------
+#pragma package(smart_init)
+#pragma resource "*.dfm"
+TCashForm *CashForm;
+
+//---------------------------------------------------------------------------
+__fastcall TCashForm::TCashForm(TComponent* Owner)
+    : TForm(Owner)
+{
+}
+//---------------------------------------------------------------------------
+// обработка клавиш на форме
+void __fastcall TCashForm::FormKeyPress(TObject *Sender, char &Key)
+{
+
+    if(Key == 13)
+    {
+      unsigned hyper db = MainWindow->MoneyAshyper(Cash->Text);
+        if(db > 200000000) // ограничиваем ввод суммы 2 млн. руб
+        {
+            Cash->Text = MainWindow->MoneyAsString(MainWindow->RestPayment());
+            Cash->SelectAll();
+            Cash->SetFocus();
+            return;
+        }
+        MainWindow->log("Подтверждена сумма " + Cash->Text + ", тип платежа " + MainWindow->PayType);
+        if(MainWindow->PayType == INTERNATIONAL_CARD_PAYMENT
+            && (db + MainWindow->GridSum(MainWindow->ComboPayGrid, CP_SUM_COL)) > MainWindow->MoneyAshyper(MainWindow->TSum->Text))
+        { // если расчет по БК, то не даем вбить сумму больше остатка
+            Cash->Text = MainWindow->MoneyAsString(MainWindow->RestPayment());
+            Cash->SelectAll();
+            Cash->SetFocus();
+            return;
+        }
+        MainWindow->ComboPayGrid->Cells[CP_SUM_COL][MainWindow->ComboPayGrid->RowCount -1] = MainWindow->MoneyAsString(db); // заполняем сумму
+        MainWindow->ComboPayGrid->Invalidate();
+        MainWindow->ComboPayGrid->OnDrawCell;
+        MainWindow->Recived->Text = MainWindow->MoneyAsString(MainWindow->GridSum(MainWindow->ComboPayGrid, CP_SUM_COL)); // сколько получено
+        if(MainWindow->PayType == NAL_PAYMENT)
+            MainWindow->SetPayStatus(MainWindow->ComboPayGrid, MainWindow->ComboPayGrid->RowCount - 1, CP_COMPLETE_STATUS); // ставим статус платежа выполнено
+        ModalResult = mrOk;
+
+    }
+    if(Key == 27)
+    {
+      ModalResult = mrCancel;
+      MainWindow->DeleteLastRow(MainWindow->ComboPayGrid);
+    }
+}
+//---------------------------------------------------------------------------
+// показываем форму
+void __fastcall TCashForm::FormShow(TObject *Sender)
+{
+//    unsigned hyper db;
+
+   hyper Sum = MainWindow->MoneyAshyper(MainWindow->TSum->Text) - MainWindow->MoneyAshyper(MainWindow->Recived->Text);
+   if(MainWindow->PayType == NAL_PAYMENT)
+   {
+      CashForm->Caption = "Получено наличных";
+      Sum = Sum - Sum%MainWindow->Round;
+   }
+   else if(MainWindow->PayType == INTERNATIONAL_CARD_PAYMENT)
+   {
+      CashForm->Caption = "Сумма по банковской карте";
+   }
+//    db = MainWindow->MoneyAshyper(Cash->Text);
+   MainWindow->AddComboPay(MainWindow->PayType, 0, MainWindow->ComboPayGrid);
+   MainWindow->SetPayStatus(MainWindow->ComboPayGrid, MainWindow->ComboPayGrid->RowCount - 1, 1);
+
+   Cash->Text = MainWindow->MoneyAsString(Sum);
+   Cash->SelectAll();
+   Cash->SetFocus();
+}
+//---------------------------------------------------------------------------
+// запрет ввода всего кроме цифр и разделителя
+void __fastcall TCashForm::CashKeyPress(TObject *Sender, char &Key)
+{
+   // проверяем ввод клавиш в поле и разрешаем только цифры и разделитель, причем разделитель с наличными тоже запрещаем
+   if((Key!=VK_BACK)&&(Key<'0'||Key>'9')&&
+      !((Key == DecimalSeparator || Key == '.' || Key == ',') && MainWindow->PayType != NAL_PAYMENT))Key=0;
+}
+//---------------------------------------------------------------------------
+

@@ -1,0 +1,7 @@
+LIBRARY     DSP850.DLL
+
+EXPORTS
+    DllCanUnloadNow                @1   ; DllCanUnloadNow
+    DllGetClassObject              @2   ; DllGetClassObject
+    DllRegisterServer              @3   ; DllRegisterServer
+    DllUnregisterServer            @4   ; DllUnregisterServer

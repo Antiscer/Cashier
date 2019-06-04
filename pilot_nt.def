@@ -1,0 +1,45 @@
+LIBRARY     PILOT_NT.DLL
+
+EXPORTS
+    @stub1$qv                      @1   ; stub1()
+    @stub2$qv                      @2   ; stub2()
+    @stub3$qv                      @4   ; stub3()
+    _AbortTransaction              @36  ; _AbortTransaction
+    _CommitTrx                     @24  ; _CommitTrx
+    _DisableReader                 @21  ; _DisableReader
+    _Done                          @15  ; _Done
+    _EnableReader                  @20  ; _EnableReader
+    _GetTerminalID                 @26  ; _GetTerminalID
+    _GetVer                        @3   ; _GetVer
+    _ReadCard                      @16  ; _ReadCard
+    _ReadCardAndName               @37  ; _ReadCardAndName
+    _ReadCardFull                  @17  ; _ReadCardFull
+    _ReadCardSB                    @28  ; _ReadCardSB
+    _ReadCardTrack3                @35  ; _ReadCardTrack3
+    _ReadCardWithType              @38  ; _ReadCardWithType
+    _ReadMaskedCardWithType        @39  ; _ReadMaskedCardWithType
+    _ReadSbercard                  @18  ; _ReadSbercard
+    _ReadTrack2                    @19  ; _ReadTrack2
+    _RollbackTrx                   @25  ; _RollbackTrx
+    _ServiceMenu                   @30  ; _ServiceMenu
+    _SetConfigData                 @40  ; _SetConfigData
+    _SetGUIHandles                 @27  ; _SetGUIHandles
+    _SuspendTrx                    @23  ; _SuspendTrx
+    _TestPinpad                    @22  ; _TestPinpad
+    ___CPPdebugHook                @42  ; ___CPPdebugHook
+    _card_authorize                @5   ; _card_authorize
+    _card_authorize10              @32  ; _card_authorize10
+    _card_authorize11              @33  ; _card_authorize11
+    _card_authorize12              @34  ; _card_authorize12
+    _card_authorize2               @6   ; _card_authorize2
+    _card_authorize3               @7   ; _card_authorize3
+    _card_authorize4               @8   ; _card_authorize4
+    _card_authorize5               @9   ; _card_authorize5
+    _card_authorize6               @10  ; _card_authorize6
+    _card_authorize6_ext           @11  ; _card_authorize6_ext
+    _card_authorize7               @12  ; _card_authorize7
+    _card_authorize8               @29  ; _card_authorize8
+    _card_authorize9               @31  ; _card_authorize9
+    _card_complete_multi_auth8     @41  ; _card_complete_multi_auth8
+    _close_day                     @13  ; _close_day
+    _get_statistics                @14  ; _get_statistics
