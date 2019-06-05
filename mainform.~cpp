@@ -7334,15 +7334,9 @@ bool __fastcall TMainWindow::SeekBill(AnsiString Code)
 }
 
 //--------------------------------------------------------------------------
-bool __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode)
+vector<DeliveryItems> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode)
 {
-
-}
-
-//----------------------------------------------------------------------------
-bool __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Code)
-{
-  //
+    //
 }
 
 //----------------------------------------------------------------------------
