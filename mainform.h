@@ -492,7 +492,7 @@ public:		// User declarations
    AnsiString SeekBillNumber;
    AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type);
    void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc);
-   vector<DeliveryItems> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode);
+//   vector<Delivery> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode);
    Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local);
    std::vector<AnsiString> __fastcall TMainWindow::GenerateItemString(AnsiString Str,unsigned hyper qnty, unsigned hyper price, int wide);
 

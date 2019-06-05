@@ -452,6 +452,11 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
       ShowDeliveryPanel(true);
       PlaySound("bill.wav",0,SND_ASYNC);
     }
+    else if(GetDeliveryDoc(Code, true).DocID != 0)
+    {
+      ShowDeliveryPanel(true);
+      PlaySound("bill.wav",0,SND_ASYNC);
+    }
     else
     {
         if(Code.Length() != 10) PlaySound("oy.wav",0,SND_ASYNC);
@@ -873,8 +878,8 @@ catch (EOleException &eException)
    log(errormsg);
 }
 
-Delivery dl =  GetDeliveryDoc("131893833821", true);
-DeliveryPrint(&dl);
+//Delivery dl =  GetDeliveryDoc("131893833821", true);
+//DeliveryPrint(&dl);
    ShowOnDisplay("");
 
 //   Sverka(true);
@@ -7294,9 +7299,12 @@ bool __fastcall TMainWindow::SeekBill(AnsiString Code)
    PriceQuery->SQL->Add("SET @t = substring(@t,3,2) + substring(@t,6,2) + substring(@t,9,2) + substring(@t,12,2) + substring(@t,15,2) + substring(@t,18,2)");
    PriceQuery->SQL->Add("SET @billnumber = (SELECT RTRIM(SCash) FROM SCash WHERE Id = SUBSTRING(@ean,1,3))");
    PriceQuery->SQL->Add("SET @billnumber = REPLICATE('0',6-len(@billnumber))+@billnumber+@t");
-   PriceQuery->SQL->Add("SELECT pr.Scancode, rt.Billnumber, pr.Name, pr.Meas, rt.Price, rt.Quantity, pr.NDS, sys.fn_varbintohexstr(rt.IDNom) as IDNom FROM retail rt");
+//   PriceQuery->SQL->Add("SELECT pr.Scancode, rt.Billnumber, pr.Name, pr.Meas, rt.Price, rt.Quantity, pr.NDS, sys.fn_varbintohexstr(rt.IDNom) as IDNom FROM retail rt");
+   PriceQuery->SQL->Add("SELECT pr.Scancode, rt.Billnumber, pr.Name, pr.Meas, rt.Price, rt.Quantity - ISNULL(di.Quantity,0) as Quantity, pr.NDS, sys.fn_varbintohexstr(rt.IDNom) as IDNom, di.* FROM retail rt");
    PriceQuery->SQL->Add("CROSS APPLY (SELECT TOP 1 * FROM price pr WHERE rt.IDnom = pr.IDnom) pr");
+   PriceQuery->SQL->Add("LEFT JOIN DeliveryItems di ON di.IDNom = rt.IDnom AND di.DocID IN (select DocID from Delivery where BillNumber = @billnumber)");
    PriceQuery->SQL->Add("WHERE BillNumber=@billnumber AND flag > 100 AND rt.Sklad=0x" + Department);
+   PriceQuery->SQL->Add("AND rt.Quantity - ISNULL(di.Quantity,0) > 0");
    try
    {
       PriceQuery->Active = true;
@@ -7334,10 +7342,11 @@ bool __fastcall TMainWindow::SeekBill(AnsiString Code)
 }
 
 //--------------------------------------------------------------------------
-vector<DeliveryItems> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode)
+/*vector<Delivery> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode)
 {
-    // привет
-}
+   vector<Delivery> ret;
+
+} */
 
 //----------------------------------------------------------------------------
 /* AnsiString __fastcall TMainWindow::EANtoBillNumber(AnsiString Code)
@@ -7648,9 +7657,9 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
       PriceQuery->Active = false;
       return 0;
    }
-   int ident = PriceQuery->FieldByName("ident")->AsInteger;
+   AnsiString sc = PriceQuery->FieldByName("ScanCode")->AsString;
    PriceQuery->Active = false;
-   return ident;
+   return sc;
 }
 //--------------------------------------------------------------------------
 // печать данных на чековой ленте
@@ -7720,7 +7729,7 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
 
    Query->SQL->Clear();
    Query->SQL->Add("SELECT * FROM DeliveryItems di");
-   Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode FROM price WHERE price.IDnom = di.IDNom ORDER BY ScanCode DESC) pr");
+   Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode, Meas FROM price WHERE price.IDnom = di.IDNom ORDER BY ScanCode DESC) pr");
    Query->SQL->Add("WHERE di.DocID = '" + AnsiString(Ret.DocID) + "'");
    try
    {
