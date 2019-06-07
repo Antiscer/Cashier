@@ -81,24 +81,24 @@ ProductVersion=5
 Comments=
 
 [Excluded Packages]
+$(BCB)\Bin\bcbsmp50.bpl=Borland C++ Sample Components
+$(BCB)\Bin\applet50.bpl=Borland Control Panel Applet Package
+$(BCB)\Bin\dclmid50.bpl=Borland MIDAS Components
+$(BCB)\Bin\dcl31w50.bpl=Delphi 1.0 Compatibility Components
+$(BCB)\Bin\mfcwizard.bpl=MFC Wizard
 $(BCB)\Bin\dclbde50.bpl=Borland BDE DB Components
 $(BCB)\Bin\dcltee50.bpl=TeeChart 5.0 Components
 C:\Windows\system32\ibsmp50.bpl=Borland C++ InterBase Alerter Component
-$(BCB)\Bin\bcbsmp50.bpl=Borland C++ Sample Components
 $(BCB)\Bin\bcb2kaxserver50.bpl=Borland C++Builder COM Server Components Sample Package
 $(BCB)\Bin\bcbie50.bpl=Borland C++Builder Internet Explorer 5 Components Package
-$(BCB)\Bin\applet50.bpl=Borland Control Panel Applet Package
 $(BCB)\Bin\dcldss50.bpl=Borland Decision Cube Components
 $(BCB)\Bin\dclsmpedit50.bpl=Borland Editor Script Enhancements
 $(BCB)\Bin\dclite50.bpl=Borland Integrated Translation Environment
 $(BCB)\Bin\dclnet50.bpl=Borland Internet Components
 $(BCB)\Bin\dclwbm50.bpl=Borland InternetExpress Components
-$(BCB)\Bin\dclmid50.bpl=Borland MIDAS Components
 $(BCB)\Bin\dclocx50.bpl=Borland Sample Imported ActiveX Controls
 $(BCB)\Bin\DBWEBXPRT.BPL=Borland Web Wizard Package
-$(BCB)\Bin\dcl31w50.bpl=Delphi 1.0 Compatibility Components
 $(BCB)\Bin\DCLIB50.bpl=InterBase Data Access Components
-$(BCB)\Bin\mfcwizard.bpl=MFC Wizard
 $(BCB)\Bin\DCLNMF50.bpl=NetMasters Fastnet Tools
 $(BCB)\Bin\dcltqr50.bpl=TeeChart 5.0 for QuickReport Components Design Package
 

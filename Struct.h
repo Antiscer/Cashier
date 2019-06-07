@@ -193,7 +193,8 @@ struct DeliveryItems
    {
       this->Quantity = hyper();
       this->Price = hyper();
-   } 
+      return 0;
+   }
    DeliveryItems(AnsiString idnom, AnsiString name, AnsiString sc, unsigned hyper qnty, unsigned hyper price, AnsiString meas)
    {
       this->IDNom = idnom;
@@ -202,6 +203,7 @@ struct DeliveryItems
       this->Quantity = qnty;
       this->Price = price;
       this->Measure = meas;
+      return;
    }
 };
 

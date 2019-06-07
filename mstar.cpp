@@ -3029,6 +3029,7 @@ bool __fastcall TMStarF::SendData(char *Command)
          return false;
       }
     }
+return true;
 }
 //---------------------------------------------------------------------------
 // запускается поток
@@ -4728,8 +4729,6 @@ bool __fastcall TMStarF::FNOperation(int OpType, hyper Price, hyper Quantity, in
        Name = Name.SubString(1,127);
        //Наименование товара
       Meas = "(" + Meas.Trim() + ")";
-      int nameLen = Name.Length();
-      int measLen = Meas.Length();
       int strNum = std::ceil((Name.Length() + Meas.Length() + 1)/(float)FR_LINE_LEN);
       Name = Name.SubString(1, FR_LINE_LEN*strNum - Meas.Length() - 1);
 //       TmpStr = Name.SubString((strNum-1)*FR_LINE_LEN + 1, (int)(Name.Length() + Meas.Length() + 1));
@@ -5008,4 +5007,51 @@ void __fastcall TMStarF::PrintF(AnsiString Text, int FontType)
     }
 return;
 
+}
+//----------------------------------------------------
+//прогон строк
+void __fastcall TMStarF::Feed(short int line)
+{
+    struct
+    {
+        char stx;       // STX		1
+        char length;
+        char code;      //25h
+        char psw[4];    // Пароль на связь	S4
+        char flag;      // 0 - отрезать напрочь, 1 - немножко порезать
+        char line;
+        char bcc;    // BCC	B	2
+    } CmdS = {0x02,7,0x29,"",2,1,0};
+
+    struct
+    {
+        unsigned char stx;       // STX
+        unsigned char length;    //3
+        unsigned char code;      //17h
+        unsigned char error;
+        unsigned char operatorNumber;
+        unsigned char bcc;    // BCC	B	2
+    } AnsS;
+
+switch(FRType)
+  {
+  case 4:
+  case 8:
+    strncpy(CmdS.psw, Psw.c_str(), 4);
+    CmdS.line = line;
+    if(SendData((char*) &CmdS))
+    {
+        memcpy(&AnsS,Data,sizeof(AnsS));
+        KKMResult = IntToHex(AnsS.error,4);
+        KKMStatus = "0000";
+        PrinterStatus = "00";
+    }
+    else
+    {
+        KKMResult = "00FF";
+        KKMStatus = "0000";
+        PrinterStatus = "00";
+    }
+  break;
+  }
 }

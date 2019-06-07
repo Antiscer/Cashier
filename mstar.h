@@ -142,6 +142,7 @@ public:
     hyper __fastcall GetMoneyReg(unsigned short int Register);
     void __fastcall TMStarF::PrintF(AnsiString Text, int FontType);
     bool __fastcall TMStarF::PrintEAN(unsigned __int64 HEAN);
+    void __fastcall TMStarF::Feed(short int line);
 
 };
 

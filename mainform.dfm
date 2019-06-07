@@ -1,6 +1,6 @@
 object MainWindow: TMainWindow
-  Left = 298
-  Top = 130
+  Left = 394
+  Top = 149
   BiDiMode = bdLeftToRight
   BorderIcons = []
   BorderStyle = bsSingle

@@ -436,7 +436,7 @@ void __fastcall TfrReturnForm::BillReturn(bool delBase)
       {
          for(std::vector<ComboPay>::iterator it = Pay.begin(); it != Pay.end(); ++it)
          {
-            if(it->CType = 99) pkReturn(it->CardID, it->Sum);
+            if(it->CType == 99) pkReturn(it->CardID, it->Sum);
          }
       }
       if(!retBillDelete(BillNumber))

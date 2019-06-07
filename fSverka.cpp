@@ -35,8 +35,6 @@ void __fastcall TFormSverka::Update()
 // временный вектор, включая дублирующиеся типы платежей и нулевые суммы
   for(std::vector<stPayType>::iterator it = payType.begin(); it != payType.end(); ++it)
   {
-      hyper a = bp[it->PayType];
-      hyper b = Star->GetMoneyReg(it->code);
       tmpSverka.push_back(stSverka(it->Type, Star->GetMoneyReg(it->code), bp[it->PayType]));
   }
 // сортируем для группировки сумм
@@ -89,7 +87,6 @@ void __fastcall TFormSverka::GetDBPay(std::map<AnsiString, unsigned hyper> &bp)
       MainWindow->PriceQuery->Next();
    }
    MainWindow->PriceQuery->Active = false;
-   int c = bp.size();
    AnsiString q = bp[" 1"];
    AnsiString w = bp[" 3"];
    AnsiString e = bp["10"];
