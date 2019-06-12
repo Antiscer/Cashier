@@ -803,8 +803,10 @@ object MainWindow: TMainWindow
     CacheSize = 28672
     Connection = CashConnection
     LockType = ltReadOnly
-    ParamCheck = False
-    Parameters = <>
+    Parameters = <
+      item
+        Value = Null
+      end>
     SQL.Strings = (
       '')
     Left = 592
@@ -823,7 +825,6 @@ object MainWindow: TMainWindow
     CacheSize = 28672
     Connection = CentralConnection
     LockType = ltReadOnly
-    ParamCheck = False
     Parameters = <>
     SQL.Strings = (
       '')

@@ -51,6 +51,7 @@ template<class Iterator, class Value>
     }
     return end;
 }
+Delivery deliveryDocument;
 
 // ---------------------------------------------------------------------------
 __fastcall TMainWindow::TMainWindow(TComponent* Owner)
@@ -69,7 +70,7 @@ __fastcall TMainWindow::TMainWindow(TComponent* Owner)
     PayType = NO_PAYMENT;
     Qnty->Color = clBtnFace;
     SoundDir = "Sound";
- pickupCols.insert(std::make_pair("num", PIG_ID_COL));
+   pickupCols.insert(std::make_pair("num", PIG_ID_COL));
    pickupCols.insert(std::make_pair("name", PIG_NAME_COL));
    pickupCols.insert(std::make_pair("meas", PIG_MEASURE_COL));
    pickupCols.insert(std::make_pair("qnty", PIG_QUANTITY_COL));
@@ -423,7 +424,7 @@ return ret;
 //---------------------------------------------------------------------------
 void __fastcall TMainWindow::CodeEnter(AnsiString Code)
 {
-    Delivery bill;
+    Delivery obj;
     if(Seek(Code))
     {
         if(PresentEnter)
@@ -464,17 +465,16 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
          ComboPayClick();
       }
     }
-    else if( (bill = SeekBill(Code)).BillNumber != "")
-    {
-
-      DeliveryPushGrid(&bill, PickupGrid, pickupCols);
-      ShowDeliveryPanel(true, bill.Status);
+    else if( (deliveryDocument = SeekBill(Code)).BillNumber.Trim() != "")
+    {  // выдаем чек с оставшимися у покупателя позициями
+//      DeliveryPushGrid(&deliveryDocument.Items, PickupGrid, pickupCols);
+      ShowDeliveryPanel(true, &deliveryDocument);
       PlaySound("bill.wav",0,SND_ASYNC);
     }
-    else if((bill = GetDeliveryDoc(Code, true)).DocID != 0)
+    else if((deliveryDocument = GetDeliveryDoc(Code, true)).DocID != 0)
     {
-      DeliveryPushGrid(&bill, PickupGrid, pickupCols);
-      ShowDeliveryPanel(true, bill.Status);
+//      DeliveryPushGrid(&deliveryDocument.Items, PickupGrid, pickupCols);
+      ShowDeliveryPanel(true, &deliveryDocument);
       PlaySound("bill.wav",0,SND_ASYNC);
     }
     else
@@ -1657,13 +1657,14 @@ void __fastcall TMainWindow::FormKeyPress(TObject *Sender, char &Key)
         if(Key == 32) {ArrangeTable(); return;}
         if(Key == 27)  // Esc
         {                    // очищаем все
-            if(BillPickup)
+            if(panelDelivery->Visible)
             {
                if(MessageBox (GetActiveWindow(), "Уверены в закрытии формы?",
                   "Подтверждение", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) == IDYES)
                {
                   ClearForm();
-                  ShowDeliveryPanel(false, 0);
+                  deliveryDocument = Delivery();
+                  ShowDeliveryPanel(false, &deliveryDocument);
                }
             }
             else
@@ -7097,25 +7098,25 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
    }
    if(Query->RecordCount == 0) {Query->Active = false; return ret;}
 
-   ret = Delivery(Query->FieldByName("ScanCode")->AsString,
+   ret = Delivery("",
          Query->FieldByName("BillNumber")->AsString,
          Query->FieldByName("Date")->AsString,
          Query->FieldByName("DocID")->AsInteger,
          Query->FieldByName("Type")->AsInteger,
-         Query->FieldByName("status")->AsInteger,
+         Query->FieldByName("Status")->AsInteger,
          Query->FieldByName("StatusDate")->AsDateTime,
-         Query->FieldByName("SCash")->AsString,
-         Query->FieldByName("Operator")->AsString
+         Trim(Query->FieldByName("SCash")->AsString),
+         Trim(Query->FieldByName("Operator")->AsString)
          );
 
    for(int i = 0; i < Query->RecordCount; i++)
    {
        ret.Items.push_back(DeliveryItems(Query->FieldByName("IDNom")->AsString.Trim(),
-         Query->FieldByName("Name")->AsString.Trim(),
-         Query->FieldByName("ScanCode")->AsString.Trim(),
+         Trim(Query->FieldByName("Name")->AsString),
+         Trim(Query->FieldByName("ScanCode")->AsString),
          QuantityAshyper(Query->FieldByName("Quantity")->AsString),
          MoneyAshyper(Query->FieldByName("Price")->AsString),
-         Query->FieldByName("Meas")->AsString
+         Trim(Query->FieldByName("Meas")->AsString)
          ));
        Query->Next();
    }
@@ -7138,30 +7139,69 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
    TDateTime
 }  */
 //----------------------------------------------------------------------------
-void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, int mode)
+void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
 {
+   if(!data || data->BillNumber == "")
+   {
+      ClearGrid(PickupGrid);
+      ClearGrid(DeliveryGrid);
+      panelDelivery->Visible = false;
+      BillPickup = false;
+      return;
+   }
    if(enable)
    {
-      switch (mode)
+      switch (data->Status)
       {
-         case 1:
-            lbPickup->Caption = "Принято от покупателя";
-            lbDelivery->Caption = "На доставку";
-            break;
-         case 2:
-            lbDelivery->Caption = "Отправлено";
-            lbPickup->Caption = "";
-            break;
-         default:
+         case 0: // это чек - передача на хранение
+            DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
             lbPickup->Caption = "Забирает покупатель";
             lbDelivery->Caption = "Принимаем на доставку";
+            BillPickup = true;
+            break;
+         case 1:  // хранение - передача доставщикам
+            DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
+            lbPickup->Caption = "Принято от покупателя";
+            lbDelivery->Caption = "На доставку";
+            BillPickup = true;
+            break;
+         case 2: // просто отображаем отчет о доставке
+            lbDelivery->Caption = "Отправлено";
+            lbPickup->Caption = "";
+            DeliveryPushGrid(&data->Items, DeliveryGrid, deliveryCols);
+            BillPickup = false;
             break;
       }
       panelDelivery->Visible = true;
-      BillPickup = true;
    }
    else
    {
+      switch(data->Status)
+      {
+         case 0:
+            data->Items = DeliveryPopGrid(DeliveryGrid, deliveryCols);
+            data->Status++;
+            data->StatusDate = Now();
+            data->CashBox = Star->Serial;
+            data->Operator = CasName;
+            data->ScanCode = PushDeliveryDoc(data);
+//            Delivery doc = GetDeliveryDoc(data->ScanCode, true);
+            DeliveryPrint(data);
+            break;
+         case 1:
+            data->Items = DeliveryPopGrid(DeliveryGrid, deliveryCols);
+            data->Status++;
+            data->StatusDate = Now();
+            data->CashBox = Star->Serial;
+            data->Operator = CasName;
+            SetDeliveryStatus(data);
+            DeliveryPrint(data);
+            break;
+         case 2:
+            DeliveryPrint(data);
+            break;
+
+      }
       ClearGrid(PickupGrid);
       ClearGrid(DeliveryGrid);
       panelDelivery->Visible = false;
@@ -7224,6 +7264,7 @@ void __fastcall TMainWindow::InitDeliveryPanel()
 
    DeliveryGrid->Height = Bevel21->Top - 2*Margin - DeliveryGrid->Top;
 
+   PickupGrid->ColCount = 7;
    PickupGrid->Cells[PIG_ID_COL][0]="№";
    PickupGrid->Cells[PIG_NAME_COL][0] = "Название";
    PickupGrid->Cells[PIG_MEASURE_COL][0] = "Ед.измер.";
@@ -7231,7 +7272,7 @@ void __fastcall TMainWindow::InitDeliveryPanel()
    PickupGrid->Cells[PIG_PRICE_COL][0] = "Цена";
    PickupGrid->Cells[PIG_IDNOM_COL][0] = "IdNom";
    PickupGrid->Cells[PIG_CODE_COL][0] = "Код";
-   PickupGrid->Cells[PIG_STATUS_COL][0] = "Статус";
+//   PickupGrid->Cells[PIG_STATUS_COL][0] = "Статус";
    PickupGrid->ColWidths[PIG_ID_COL] = 30;
    PickupGrid->ColWidths[PIG_MEASURE_COL] = 60;
    PickupGrid->ColWidths[PIG_QUANTITY_COL] = 80;
@@ -7361,7 +7402,6 @@ void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
       DeliveryGrid->Cells[DG_IDNOM_COL][k] = it->IDNom;
       k++;
    }
-
 }
 //---------------------------------------------------------------------------
 
@@ -7369,14 +7409,15 @@ void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
 
 void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 {
-   if(DeliveryGrid->Cells[DG_ID_COL][0].IsEmpty()) return;
-   AnsiString ScanCode = PushDeliveryDoc(DELIVERY_DOC_TYPE_DELIVERY);
-   Delivery doc = GetDeliveryDoc(ScanCode, true);
-   DeliveryPrint(&doc);
+
+   if(DeliveryGrid->Cells[DG_ID_COL][1].IsEmpty()) return;
+   ShowDeliveryPanel(false, &deliveryDocument);
+
 }
+
 //---------------------------------------------------------------------------
 
-AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
+AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
 {
    PriceQuery->SQL->Clear();
    PriceQuery->SQL->Add("BEGIN TRY");
@@ -7385,18 +7426,20 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
    PriceQuery->SQL->Add("DECLARE @now datetime = CURRENT_TIMESTAMP");
    PriceQuery->SQL->Add("DECLARE @ident as int");
    PriceQuery->SQL->Add("INSERT INTO Delivery (ScanCode, BillNumber, [Date], DeliveryDate, [Type])  VALUES ");
-   PriceQuery->SQL->Add("(@sc, '" + SeekBillNumber + "', @now, ''," + Type + ")");
+   PriceQuery->SQL->Add("(@sc, :billnumber, :date, :deliverydate, :type)");
    PriceQuery->SQL->Add("SET @ident = SCOPE_IDENTITY()");
    PriceQuery->SQL->Add("INSERT INTO DeliveryItems (DocID, IDNom, Quantity, Price) VALUES");
-   for(int i = 1; i < DeliveryGrid->RowCount; i++)
+   bool comma = false;
+   for(std::vector<DeliveryItems>::iterator it = data->Items.begin(); it != data->Items.end(); ++it)
    {
-      PriceQuery->SQL->Add("(@ident," + DeliveryGrid->Cells[DG_IDNOM_COL][i] + ",");
-      PriceQuery->SQL->Add(DeliveryGrid->Cells[DG_QUANTITY_COL][i] + ",");
-      PriceQuery->SQL->Add(DeliveryGrid->Cells[DG_PRICE_COL][i] + ")");
-      if(i < DeliveryGrid->RowCount - 1) PriceQuery->SQL->Add(",");
+      if(comma) PriceQuery->SQL->Add(",");
+      PriceQuery->SQL->Add("(@ident," + it->IDNom + ",");
+      PriceQuery->SQL->Add(QuantityAsString(it->Quantity) + ",");
+      PriceQuery->SQL->Add(MoneyAsString(it->Price) + ")");
+      comma = true;
    }
    PriceQuery->SQL->Add("INSERT INTO DeliveryStatus (DocID, [Date], [Status], SCash, Operator) VALUES");
-   PriceQuery->SQL->Add("(@ident, @now, 1, ' " + Star->Serial + " ', ' " + CasName + " ')");
+   PriceQuery->SQL->Add("(@ident, @now, :status, :serial, :casname)");
    PriceQuery->SQL->Add("SELECT @sc as ScanCode");
    PriceQuery->SQL->Add("COMMIT TRAN");
    PriceQuery->SQL->Add("END TRY");
@@ -7408,7 +7451,18 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
    PriceQuery->SQL->Add("SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE();");
    PriceQuery->SQL->Add("RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);");
    PriceQuery->SQL->Add("END CATCH");
+//   PriceQuery->Parameters->ParseSQL(PriceQuery->SQL->Text, True);
 
+   PriceQuery->Parameters->ParamByName("billnumber")->Value = data->BillNumber;
+   PriceQuery->Parameters->ParamByName("date")->Value = Now();
+   PriceQuery->Parameters->ParamByName("deliverydate")->Value = 0;
+   PriceQuery->Parameters->ParamByName("type")->DataType = ftInteger;
+   PriceQuery->Parameters->ParamByName("type")->Value = data->Type;
+   PriceQuery->Parameters->ParamByName("status")->DataType = ftInteger;
+   PriceQuery->Parameters->ParamByName("status")->Value = data->Status;
+   PriceQuery->Parameters->ParamByName("serial")->Value = data->CashBox;
+   PriceQuery->Parameters->ParamByName("casname")->Value = data->Operator;
+//   PriceQuery->Parameters->ParamByName("date")->DataType = data->DateTime;
    _di_Errors        errCollection;
    _di_Error        errSingle;
    int iCount = 0;
@@ -7435,7 +7489,7 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
       AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
       log(errormsg);
       PriceQuery->Active = false;
-      return 0;
+      return "";
    }
    catch (_di_Errors &errCollection)
    {
@@ -7453,28 +7507,69 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type)
          log(errormsg);
       }
       PriceQuery->Active = false;
-      return 0;
+      return "";
    }
    AnsiString sc = PriceQuery->FieldByName("ScanCode")->AsString;
    PriceQuery->Active = false;
    return sc;
 }
 //--------------------------------------------------------------------------
+void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data)
+{
+   PriceQuery->SQL->Clear();
+   PriceQuery->SQL->Add("INSERT INTO DeliveryStatus ([DocID],[Date],[Status],[Scash],[Operator]) VALUES");
+   PriceQuery->SQL->Add("( :docid, :date, :status, :cashbox, :operator)");
+
+   PriceQuery->Parameters->ParamByName("date")->Value = data->StatusDate;
+   PriceQuery->Parameters->ParamByName("status")->DataType = ftInteger;
+   PriceQuery->Parameters->ParamByName("status")->Value = data->Status;
+   PriceQuery->Parameters->ParamByName("cashbox")->Value = data->CashBox;
+   PriceQuery->Parameters->ParamByName("operator")->Value = data->Operator;
+   PriceQuery->Parameters->ParamByName("docid")->DataType = ftLargeint;
+   PriceQuery->Parameters->ParamByName("docid")->Value = int(data->DocID);
+   
+   try
+   {
+      PriceQuery->ExecSQL();
+   }
+   catch (EOleException &eException)
+   {
+      Name->Caption = "Ошибка SQL. Немедленно прекратить работу!";
+      PlaySound("oy.wav",0,SND_ASYNC);
+      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
+      log(errormsg);
+      return;
+   }
+}
+
+//--------------------------------------------------------------------------
 // печать данных на чековой ленте
 
 void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc)
 {
    std::vector<AnsiString> ItemString;
+   switch(Doc->Status)
+   {
+      case 1:
+         Star->PrintF("Принято на хранение", 2);
+         break;
+      case 2:
+         Star->PrintF(" Отдано в доставку", 2);
 
-   Star->PrintF("      Доставка", 2);
+   }
    Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
    Star->PrintF("Кассир: " + AnsiString(Doc->Operator), 7);
    Star->PrintEAN(_atoi64(Doc->ScanCode.SubString(1,12).c_str()));
-
+   Star->PrintF(" ", 7);
+   int n = 0;
+   AnsiString name;
    for(std::vector<DeliveryItems>::iterator it = Doc->Items.begin(); it != Doc->Items.end(); ++it)
    {
+      n++;
       ItemString.clear();
-      ItemString = GenerateItemString(it->Name, it->Quantity, it->Price, 50);
+      name = IntToStr(n) + ". " + it->Name;
+      ItemString = GenerateItemString(name, it->Quantity, it->Price, 50);
+      // Печатаем позицию
       for(std::vector<AnsiString>::iterator j = ItemString.begin(); j != ItemString.end(); ++j)
       {
          Star->PrintF(*j, 5);
@@ -7514,7 +7609,7 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
      return ret;
      //     return Delivery(); // возврат пустой структуры
    }
-   if(Query->RecordCount == 0) return ret;
+   if(Query->RecordCount == 0) {Query->Active = false; return ret;}
 
    ret = Delivery(Query->FieldByName("ScanCode")->AsString,
          Query->FieldByName("BillNumber")->AsString,
@@ -7523,8 +7618,8 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
          Query->FieldByName("Type")->AsInteger,
          Query->FieldByName("status")->AsInteger,
          Query->FieldByName("StatusDate")->AsDateTime,
-         Query->FieldByName("SCash")->AsString,
-         Query->FieldByName("Operator")->AsString
+         Trim(Query->FieldByName("SCash")->AsString),
+         Trim(Query->FieldByName("Operator")->AsString)
          );
 
    Query->Active = false;
@@ -7547,15 +7642,15 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
       return ret;
     }
 
-    if(Query->RecordCount == 0) return ret;
+    if(Query->RecordCount == 0) {Query->Active = false; return ret;}
     for(int i = 0; i < Query->RecordCount; i++)
     {
-       ret.Items.push_back(DeliveryItems(Query->FieldByName("IDNom")->AsString.Trim(),
-         Query->FieldByName("Name")->AsString.Trim(),
-         Query->FieldByName("ItemScanCode")->AsString.Trim(),
+       ret.Items.push_back(DeliveryItems(Trim(Query->FieldByName("IDNom")->AsString),
+         Trim(Query->FieldByName("Name")->AsString),
+         Trim(Query->FieldByName("ItemScanCode")->AsString),
          QuantityAshyper(Query->FieldByName("Quantity")->AsString),
          MoneyAshyper(Query->FieldByName("Price")->AsString),
-         Query->FieldByName("Meas")->AsString.Trim()
+         Trim(Query->FieldByName("Meas")->AsString)
          ));
        Query->Next();
     }
@@ -7582,13 +7677,12 @@ std::vector<AnsiString> __fastcall TMainWindow::GenerateItemString(AnsiString St
 return Ret;
 }
 //-------------------------------------------------------------------------
-void __fastcall TMainWindow::DeliveryPushGrid(Delivery *data, TStringGrid *Grid, std::map<AnsiString,int> cols)
+void __fastcall TMainWindow::DeliveryPushGrid(std::vector<DeliveryItems> *data, TStringGrid *Grid, std::map<AnsiString,int> cols)
 {
    int i = 0;
-   std::vector<DeliveryItems>::iterator it = data->Items.begin();
+   std::vector<DeliveryItems>::iterator it;
 
-
-   for(it = data->Items.begin(); it != data->Items.end(); ++it)
+   for(it = data->begin(); it != data->end(); ++it)
    {
       i++;
       Grid->RowCount = i + 1;
@@ -7602,7 +7696,23 @@ void __fastcall TMainWindow::DeliveryPushGrid(Delivery *data, TStringGrid *Grid,
    }
 }
 // ---------------------------------------------------------------------
+std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols)
+{
+   std::vector<DeliveryItems> ret;
+   for(int i = 1; i < Grid->RowCount; i++)
+   {
+      ret.push_back(DeliveryItems(Grid->Cells[cols["idnom"]][i],
+         Grid->Cells[cols["name"]][i],
+         Grid->Cells[cols["code"]][i],
+         QuantityAshyper(Grid->Cells[cols["qnty"]][i]),
+         MoneyAshyper(Grid->Cells[cols["price"]][i]),
+         Grid->Cells[cols["meas"]][i]
+         ));
+   }
+   return ret;
+}
 
+//-------------------------------------------------------------------------
 AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn)
 {
    return bn.SubString(1,2)+"-"+bn.SubString(3,4)+"-"+bn.SubString(7,4)+"-"+bn.SubString(11,4)+"-"+bn.SubString(15,4);

@@ -281,6 +281,7 @@ bool __fastcall TfrReturnForm::retBillDelete(AnsiString BillNumber)
       }
       return false;
    }
+ return true;
 }
 //-------------------------------------------------------------------------
 

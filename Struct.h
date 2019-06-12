@@ -189,11 +189,10 @@ struct DeliveryItems
    unsigned hyper Quantity;
    unsigned hyper Price;
    AnsiString Measure;
-   Delivery()
+   DeliveryItems()
    {
       this->Quantity = hyper();
       this->Price = hyper();
-      return 0;
    }
    DeliveryItems(AnsiString idnom, AnsiString name, AnsiString sc, unsigned hyper qnty, unsigned hyper price, AnsiString meas)
    {
@@ -203,7 +202,6 @@ struct DeliveryItems
       this->Quantity = qnty;
       this->Price = price;
       this->Measure = meas;
-      return;
    }
 };
 
@@ -245,7 +243,20 @@ struct Delivery
       this->StatusDate = sd;
       this->CashBox = cb;
       this->Operator = op;
-   };
+   }
+   void clear()
+   {
+      this->ScanCode = "";
+      this->BillNumber = "";
+      this->DateTime = TDateTime();
+      this->DocID = hyper();
+      this->Type = int();
+      this->Status = int();
+      this->StatusDate = TDateTime();
+      this->CashBox = "";
+      this->Operator = "";
+      this->Items.clear();
+   }
 };
 
 

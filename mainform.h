@@ -486,12 +486,12 @@ public:		// User declarations
    void __fastcall TMainWindow::frReport();
    Delivery __fastcall TMainWindow::SeekBill(AnsiString Code);
    bool BillPickup;
-   void __fastcall ShowDeliveryPanel(bool enable, int mode);
+   void __fastcall ShowDeliveryPanel(bool enable, Delivery *data);
    void __fastcall InitDeliveryPanel();
    bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid *FromGrid, TStringGrid *ToGrid);
    int __fastcall TMainWindow::SearchInGrid(AnsiString string, TStringGrid *Grid, int colNum);
    AnsiString SeekBillNumber;
-   AnsiString __fastcall TMainWindow::PushDeliveryDoc(int Type);
+   AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data);
    void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc);
 //   vector<Delivery> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode);
    Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local);
@@ -499,8 +499,10 @@ public:		// User declarations
    std::vector<AnsiString> __fastcall TMainWindow::GenerateItemString(AnsiString Str,unsigned hyper qnty, unsigned hyper price, int wide);
    std::map<AnsiString,int> pickupCols;
    std::map<AnsiString,int> deliveryCols;
-   void __fastcall TMainWindow::DeliveryPushGrid(Delivery *data, TStringGrid *Grid, std::map<AnsiString,int> cols);
+   void __fastcall TMainWindow::DeliveryPushGrid(std::vector<DeliveryItems> *data, TStringGrid *Grid, std::map<AnsiString,int> cols);
    AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn);
+   std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols);
+   void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data);
 
 };
 //---------------------------------------------------------------------------
