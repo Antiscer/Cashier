@@ -210,7 +210,7 @@ struct Delivery
    AnsiString ScanCode;
    AnsiString BillNumber;
    TDateTime DateTime;
-   unsigned hyper DocID;
+   unsigned int DocID;
    unsigned int Type;
    unsigned int Status;
    TDateTime  StatusDate;

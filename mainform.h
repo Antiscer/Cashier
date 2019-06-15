@@ -201,7 +201,7 @@ __published:	// IDE-managed Components
    TStringGrid *PickupGrid;
    TStringGrid *DeliveryGrid;
    TMenuItem *N3;
-   TMenuItem *N21;
+   TMenuItem *DeliveryInit;
    TMenuItem *InvertGrids;
    TMenuItem *DeliveryDoc;
     void __fastcall FormCreate(TObject *Sender);
@@ -251,6 +251,7 @@ __published:	// IDE-managed Components
    void __fastcall ReturnBCClick(TObject *Sender);
    void __fastcall InvertGridsClick(TObject *Sender);
    void __fastcall DeliveryDocClick(TObject *Sender);
+   void __fastcall DeliveryInitClick(TObject *Sender);
 //   void __fastcall ReturnBCClick(TObject *Sender);
 private:	// User declarations
     CRITICAL_SECTION CS;
@@ -503,7 +504,8 @@ public:		// User declarations
    AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn);
    std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols);
    void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data);
-
+   void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items);
+   void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;

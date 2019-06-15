@@ -4,7 +4,7 @@ object MainWindow: TMainWindow
   BiDiMode = bdLeftToRight
   BorderIcons = []
   BorderStyle = bsSingle
-  Caption = 'Колорлон.Кассир.7.6.1 Онлайн'
+  Caption = 'Колорлон.Кассир.7.7 Онлайн'
   ClientHeight = 592
   ClientWidth = 1006
   Color = clActiveBorder
@@ -784,17 +784,19 @@ object MainWindow: TMainWindow
     end
     object N3: TMenuItem
       Caption = 'Доставка'
-      object InvertGrids: TMenuItem
-        Caption = 'Обменять панели'
-        OnClick = InvertGridsClick
-      end
-      object N21: TMenuItem
+      object DeliveryInit: TMenuItem
         Caption = 'Вернуть к первоначальному'
+        OnClick = DeliveryInitClick
       end
       object DeliveryDoc: TMenuItem
         Caption = 'На доставку'
-        ShortCut = 123
+        ShortCut = 16506
         OnClick = DeliveryDocClick
+      end
+      object InvertGrids: TMenuItem
+        Caption = 'Обменять панели'
+        ShortCut = 49228
+        OnClick = InvertGridsClick
       end
     end
   end

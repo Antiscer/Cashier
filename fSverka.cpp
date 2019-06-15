@@ -82,7 +82,6 @@ void __fastcall TFormSverka::GetDBPay(std::map<AnsiString, unsigned hyper> &bp)
 
    for(int i = 0; i < count; i++)
    {
-      double a = MainWindow->PriceQuery->FieldByName("Summ")->AsFloat;
       bp.insert(std::make_pair(MainWindow->PriceQuery->FieldByName("PayType")->AsString, (int)(MainWindow->PriceQuery->FieldByName("Summ")->AsFloat * 100 + 0.5)));
       MainWindow->PriceQuery->Next();
    }

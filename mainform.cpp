@@ -446,6 +446,10 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
                PlaySound("oy.wav",0,SND_ASYNC);
            }
         }
+        else if(!BillPickup && !Grid->Enabled)
+        {
+            PlaySound("err-vzmah.wav",0,SND_ASYNC);
+        }
         else
         {
             AddToTable(Grid);
@@ -469,13 +473,13 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
     {  // выдаем чек с оставшимися у покупателя позициями
 //      DeliveryPushGrid(&deliveryDocument.Items, PickupGrid, pickupCols);
       ShowDeliveryPanel(true, &deliveryDocument);
-      PlaySound("bill.wav",0,SND_ASYNC);
+      PlaySound("ring.wav",0,SND_ASYNC);
     }
     else if((deliveryDocument = GetDeliveryDoc(Code, true)).DocID != 0)
     {
 //      DeliveryPushGrid(&deliveryDocument.Items, PickupGrid, pickupCols);
       ShowDeliveryPanel(true, &deliveryDocument);
-      PlaySound("bill.wav",0,SND_ASYNC);
+      PlaySound("ring.wav",0,SND_ASYNC);
     }
     else
     {
@@ -3398,7 +3402,7 @@ void __fastcall TMainWindow::ShowOnDisplay(char * Message)
 //    CloseHandle (hCommD);                    // close the COM port.
 }
 
-
+//------------------------------------------------------------------------
 void __fastcall TMainWindow::L1Click(TObject *Sender)
 {
     AnsiString MessageA = "   ДИСПЛЕЙ          ИНИЦИАЛИЗИРОВАН";
@@ -7098,7 +7102,7 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
    }
    if(Query->RecordCount == 0) {Query->Active = false; return ret;}
 
-   ret = Delivery("",
+   ret = Delivery(Code,
          Query->FieldByName("BillNumber")->AsString,
          Query->FieldByName("Date")->AsString,
          Query->FieldByName("DocID")->AsInteger,
@@ -7145,23 +7149,33 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
    {
       ClearGrid(PickupGrid);
       ClearGrid(DeliveryGrid);
-      panelDelivery->Visible = false;
-      BillPickup = false;
-      return;
+      if(enable)
+      {
+         panelDelivery->Visible = true;
+         BillPickup = true;
+         return;
+      }
+      else
+      {
+         panelDelivery->Visible = false;
+         BillPickup = false;
+         return;
+      }
    }
    if(enable)
    {
+      Grid->Enabled = false;
       switch (data->Status)
       {
          case 0: // это чек - передача на хранение
             DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
-            lbPickup->Caption = "Забирает покупатель";
-            lbDelivery->Caption = "Принимаем на доставку";
+            lbPickup->Caption = "Остаётся у покупателя";
+            lbDelivery->Caption = "Принимаем на хранение";
             BillPickup = true;
             break;
          case 1:  // хранение - передача доставщикам
             DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
-            lbPickup->Caption = "Принято от покупателя";
+            lbPickup->Caption = "На хранении";
             lbDelivery->Caption = "На доставку";
             BillPickup = true;
             break;
@@ -7176,26 +7190,41 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
    }
    else
    {
+      std::vector<DeliveryItems> res;
       switch(data->Status)
       {
          case 0:
             data->Items = DeliveryPopGrid(DeliveryGrid, deliveryCols);
-            data->Status++;
+            data->Status = 1;
             data->StatusDate = Now();
             data->CashBox = Star->Serial;
             data->Operator = CasName;
             data->ScanCode = PushDeliveryDoc(data);
 //            Delivery doc = GetDeliveryDoc(data->ScanCode, true);
-            DeliveryPrint(data);
+            for(int i=0; i<3;i++) DeliveryPrint(data);
             break;
          case 1:
-            data->Items = DeliveryPopGrid(DeliveryGrid, deliveryCols);
-            data->Status++;
-            data->StatusDate = Now();
-            data->CashBox = Star->Serial;
-            data->Operator = CasName;
-            SetDeliveryStatus(data);
-            DeliveryPrint(data);
+            res = DeliveryPopGrid(PickupGrid, pickupCols);
+            if(res.size() > 0)
+            {
+               if(MessageBox (GetActiveWindow(), "Невозможно провести документ, остались не считанные товары. \r\n Напечатать разностный отчет?",
+                  "Остались товары", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
+               {
+                  DeliveryDiffDocPrint(data, &res);
+                  deliveryDocument = Delivery();
+                  ShowDeliveryPanel(false, &deliveryDocument);
+               }
+               return;
+            }
+            else
+            {
+               data->Status = 2;
+               data->StatusDate = Now();
+               data->CashBox = Star->Serial;
+               data->Operator = CasName;
+               SetDeliveryStatus(data);
+               for(int i=0; i<3;i++) DeliveryPrint(data);
+            }
             break;
          case 2:
             DeliveryPrint(data);
@@ -7206,6 +7235,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
       ClearGrid(DeliveryGrid);
       panelDelivery->Visible = false;
       BillPickup = false;
+      Grid->Enabled = true;
    }
 }
 //----------------------------------------------------------------------------
@@ -7410,8 +7440,15 @@ void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
 void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 {
 
-   if(DeliveryGrid->Cells[DG_ID_COL][1].IsEmpty()) return;
-   ShowDeliveryPanel(false, &deliveryDocument);
+   if(panelDelivery->Visible)
+   {
+      if(DeliveryGrid->Cells[DG_ID_COL][1].IsEmpty()) return;
+      ShowDeliveryPanel(false, &deliveryDocument);
+   }
+   else
+   {
+      ShowDeliveryPanel(true, &deliveryDocument);
+   }
 
 }
 
@@ -7526,7 +7563,7 @@ void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data)
    PriceQuery->Parameters->ParamByName("cashbox")->Value = data->CashBox;
    PriceQuery->Parameters->ParamByName("operator")->Value = data->Operator;
    PriceQuery->Parameters->ParamByName("docid")->DataType = ftLargeint;
-   PriceQuery->Parameters->ParamByName("docid")->Value = int(data->DocID);
+   PriceQuery->Parameters->ParamByName("docid")->Value = data->DocID;
    
    try
    {
@@ -7547,36 +7584,28 @@ void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data)
 
 void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc)
 {
-   std::vector<AnsiString> ItemString;
+
+   Star->PrintF("Документ на доставку", 2);
+   Star->Feed(1);
+   Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
+   Star->PrintF("Касса: " + Doc->CashBox + " Кассир: " + AnsiString(Doc->Operator), 7);
+   Star->Feed(1);
+   Star->PrintEAN(_atoi64(Doc->ScanCode.SubString(1,12).c_str()));
+   Star->Feed(1);
    switch(Doc->Status)
    {
       case 1:
-         Star->PrintF("Принято на хранение", 2);
+         Star->PrintF("Принято на хранение:", 4);
          break;
       case 2:
-         Star->PrintF(" Отдано в доставку", 2);
+         Star->PrintF("Отдано в доставку:", 4);
 
    }
-   Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
-   Star->PrintF("Кассир: " + AnsiString(Doc->Operator), 7);
-   Star->PrintEAN(_atoi64(Doc->ScanCode.SubString(1,12).c_str()));
-   Star->PrintF(" ", 7);
-   int n = 0;
-   AnsiString name;
-   for(std::vector<DeliveryItems>::iterator it = Doc->Items.begin(); it != Doc->Items.end(); ++it)
-   {
-      n++;
-      ItemString.clear();
-      name = IntToStr(n) + ". " + it->Name;
-      ItemString = GenerateItemString(name, it->Quantity, it->Price, 50);
-      // Печатаем позицию
-      for(std::vector<AnsiString>::iterator j = ItemString.begin(); j != ItemString.end(); ++j)
-      {
-         Star->PrintF(*j, 5);
-      }
-      Star->PrintF(AnsiString::StringOfChar('-', 50), 5);
-   }
+   Star->PrintF(AnsiString::StringOfChar('-', 50), 5);
+   DeliveryItemsPrint(&Doc->Items);
    Star->Feed(2);
+   Star->PrintF("Подпись:______________________", 1);
+   Star->Feed(1);
    Star->CRLF();
 }
 //----------------------------------------------------------------------
@@ -7717,3 +7746,54 @@ AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn)
 {
    return bn.SubString(1,2)+"-"+bn.SubString(3,4)+"-"+bn.SubString(7,4)+"-"+bn.SubString(11,4)+"-"+bn.SubString(15,4);
 }
+//-------------------------------------------------------------------------
+void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items)
+{
+
+   Star->PrintF("  Разностный отчет", 2);
+   Star->Feed(1);
+   Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
+   Star->PrintF("Касса: " + Doc->CashBox + " Кассир: " + AnsiString(Doc->Operator), 7);
+   Star->PrintEAN(_atoi64(Doc->ScanCode.SubString(1,12).c_str()));
+   Star->PrintF(" ", 7);
+   Star->PrintF("Принято на хранение:", 4);
+   DeliveryItemsPrint(&Doc->Items);
+   Star->Feed(1);
+   Star->PrintF("Не найдены товары:", 4);
+   DeliveryItemsPrint(Items);
+   Star->Feed(2);
+   Star->PrintF("Подпись:______________________", 1);
+   Star->Feed(1);
+   Star->CRLF();
+}
+//---------------------------------------------------------------------------
+void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items)
+{
+   std::vector<AnsiString> ItemString;
+   int n = 0;
+   AnsiString name;
+   for(std::vector<DeliveryItems>::iterator it = Items->begin(); it != Items->end(); ++it)
+   {
+      n++;
+      ItemString.clear();
+      name = IntToStr(n) + ". " + it->ItemScanCode + " " + it->Name;
+      ItemString = GenerateItemString(name, it->Quantity, it->Price, 50);
+      // Печатаем позицию
+      for(std::vector<AnsiString>::iterator j = ItemString.begin(); j != ItemString.end(); ++j)
+      {
+         Star->PrintF(*j, 5);
+      }
+      Star->PrintF(AnsiString::StringOfChar('-', 50), 5);
+   }
+}
+//-----------------------------------------------------------------------
+void __fastcall TMainWindow::DeliveryInitClick(TObject *Sender)
+{
+   AnsiString Code = deliveryDocument.ScanCode;
+   ClearGrid(PickupGrid);
+   ClearGrid(DeliveryGrid);
+   deliveryDocument = Delivery();
+   CodeEnter(Code);
+}
+//---------------------------------------------------------------------------
+
