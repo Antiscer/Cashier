@@ -1,6 +1,6 @@
 object MainWindow: TMainWindow
-  Left = 394
-  Top = 149
+  Left = 494
+  Top = 191
   BiDiMode = bdLeftToRight
   BorderIcons = []
   BorderStyle = bsSingle
@@ -333,6 +333,10 @@ object MainWindow: TMainWindow
     Panels = <
       item
         Width = 50
+      end
+      item
+        Alignment = taCenter
+        Width = 250
       end
       item
         Alignment = taCenter
@@ -798,6 +802,11 @@ object MainWindow: TMainWindow
         ShortCut = 49228
         OnClick = InvertGridsClick
       end
+      object DeliveryDocRepeat: TMenuItem
+        Caption = 'Повторить документ'
+        ShortCut = 122
+        OnClick = DeliveryDocRepeatClick
+      end
     end
   end
   object PriceQuery: TADOQuery
@@ -807,6 +816,7 @@ object MainWindow: TMainWindow
     LockType = ltReadOnly
     Parameters = <
       item
+        Size = -1
         Value = Null
       end>
     SQL.Strings = (

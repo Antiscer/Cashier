@@ -48,6 +48,7 @@
 #define COMPLEX_PAYMENT                 "16"
 #define GIFT_CARD_PAYMENT               " 3"
 // колонки таблицы товаров Prodict Grid
+#define PG_ID_COL                0
 #define PG_CODE_COL              1
 #define PG_NAME_COL              2
 #define PG_MEASURE_COL           3
@@ -63,6 +64,7 @@
 #define PG_ESTIMATED_PRICE_COL   14
 #define PG_CORRECTION_COL        15
 // колонки таблицы платежей Combo Pay
+#define CP_ID_COL          0
 #define CP_NAME_COL        1
 #define CP_SUM_COL         2
 #define CP_DEL_COL         3
@@ -204,6 +206,7 @@ __published:	// IDE-managed Components
    TMenuItem *DeliveryInit;
    TMenuItem *InvertGrids;
    TMenuItem *DeliveryDoc;
+   TMenuItem *DeliveryDocRepeat;
     void __fastcall FormCreate(TObject *Sender);
     void __fastcall FormResize(TObject *Sender);
     void __fastcall ExitClick(TObject *Sender);
@@ -252,6 +255,7 @@ __published:	// IDE-managed Components
    void __fastcall InvertGridsClick(TObject *Sender);
    void __fastcall DeliveryDocClick(TObject *Sender);
    void __fastcall DeliveryInitClick(TObject *Sender);
+   void __fastcall DeliveryDocRepeatClick(TObject *Sender);
 //   void __fastcall ReturnBCClick(TObject *Sender);
 private:	// User declarations
     CRITICAL_SECTION CS;
@@ -439,7 +443,7 @@ public:		// User declarations
    FRStatus frStatus;
    bool __fastcall CreateBillBody(bool onReceipt);
 
-   HANDLE hEvent1, hPrnEvent, evConnStatus;
+   HANDLE hEvent1, hPrnEvent, evConnStatus, evSQLConnStatusOK;
 
 //   std::vector<BillData> mfBillData;
    std::vector<BillItemLine> PrintLineData;
@@ -495,7 +499,7 @@ public:		// User declarations
    AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data);
    void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc);
 //   vector<Delivery> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode);
-   Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local);
+   Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode);
 //void __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local, Delivery *dl);
    std::vector<AnsiString> __fastcall TMainWindow::GenerateItemString(AnsiString Str,unsigned hyper qnty, unsigned hyper price, int wide);
    std::map<AnsiString,int> pickupCols;
@@ -505,7 +509,11 @@ public:		// User declarations
    std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols);
    void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data);
    void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items);
-   void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items);
+   hyper __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items);
+   bool SQLConnOK;
+   void __fastcall TMainWindow::SetConnStatus(bool conn);
+   bool __fastcall TMainWindow::GetConnStatus(bool silent);
+   AnsiString TMainWindow::GetLastDeliveryDoc();
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;

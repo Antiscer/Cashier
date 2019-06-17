@@ -475,7 +475,7 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
       ShowDeliveryPanel(true, &deliveryDocument);
       PlaySound("ring.wav",0,SND_ASYNC);
     }
-    else if((deliveryDocument = GetDeliveryDoc(Code, true)).DocID != 0)
+    else if((deliveryDocument = GetDeliveryDoc(Code)).DocID != 0)
     {
 //      DeliveryPushGrid(&deliveryDocument.Items, PickupGrid, pickupCols);
       ShowDeliveryPanel(true, &deliveryDocument);
@@ -531,6 +531,7 @@ void __fastcall TMainWindow::FormCreate(TObject *Sender)
     hEvent1 = CreateEvent(NULL, false, false, "evBillSuccess");
     hPrnEvent = CreateEvent(NULL, false, false, "evPrintSuccess"); // событие окончания печати чека
     evConnStatus = CreateEvent(NULL, false, false, "ConnectionStatus");
+    evSQLConnStatusOK = CreateEvent(NULL, false, false, "SQLConnectionStatusOK");
     ProgramPath = ExtractFilePath(Application->ExeName);
     Payments = false;
     ScanCodeCheckDigit = false;
@@ -638,11 +639,6 @@ void __fastcall TMainWindow::FormCreate(TObject *Sender)
     }
 
     log("Запуск программы. Инициализация считана из файла");
-
-/*    StatusBar->Panels->Items[2]->Text = Department
-        + " РГ" + String(MstarCom)
-        + " СК" + String(CommPort)
-        + " ZK" + String(ZKPort); */
 
     Grid->Cells[0][0] = "№";
     Grid->Cells[1][0] = "Код";
@@ -881,7 +877,7 @@ void __fastcall TMainWindow::FormCreate(TObject *Sender)
       PriceQuery->Active = false;
       return;
     }
-    StatusBar->Panels->Items[2]->Text = DepartmentName;
+    StatusBar->Panels->Items[3]->Text = DepartmentName;
 
 /*
     if(Department.Length() != 32)
@@ -1804,7 +1800,8 @@ void __fastcall TMainWindow::FormResize(TObject *Sender)
         - StatusBar->Panels->Items[1]->Width
         - StatusBar->Panels->Items[2]->Width
         - StatusBar->Panels->Items[3]->Width
-        - StatusBar->Panels->Items[4]->Width ;
+        - StatusBar->Panels->Items[4]->Width
+        - StatusBar->Panels->Items[5]->Width ;
     Name->Width = ClientWidth - Name->Left*2;
     PresentLabel->Left = ClientWidth - PresentLabel->Width - 10;
     PresentLabel->Top = Grid->Top - PresentLabel->Height - 5;
@@ -3036,147 +3033,14 @@ bool __fastcall TMainWindow::GetSverka(bool Silent)
 {
 
 //FormSverka->ShowModal(true);
-if(FormSverka->ShowModal(Silent) == mrOk)
-{
-   return true;
-}
-else
-{
-   return false;
-}
-
-/* hyper LFRSumm;
-Word Year, Month, Day;
-//TDateTime dtPresent; // = Now();
-TDateTime LastEndSession;
-unsigned hyper FRSumm,USumm,USkidka,USumPK,BillSumm;
-AnsiString Str;
-
-//LFRSumm = Star->GetSellSumm();
-
-LFRSumm = Star->GetMoneyReg(4180);
-if(LFRSumm == -1) return;
-FRSumm = LFRSumm;
-
-
-// Время последней записи с флагом 100
-PriceQuery->SQL->Text = "select ISNULL(max(billdatetime),0) as LastEndSession from retail where SCash = '" + Star->Serial +"' and flag=100";
-    try
-    {
-      PriceQuery->Active = true;
-    }
-    catch (EOleException &eException)
-    {
-      Name->Caption = "Ошибка при сверке сумм";
-      PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
-      log(errormsg);
-      PriceQuery->Active = false;
-      return;
-    }
-   if(PriceQuery->RecordCount)  LastEndSession = PriceQuery->FieldByName("LastEndSession")->AsDateTime;
-
-   PriceQuery->Active = false;
-
-//Определим показания Учета за сегодня
-PriceQuery->SQL->Text = "select ISNULL(sum(s),0) as Summ from (select BillNumber,paytype,SUM(round(price*quantity,2)) as s from retail where BillDateTime > '" + FormatDateTime("yyyymmdd hh:mm:ss", LastEndSession) + "' and flag = 101 group by BillNumber,paytype)a";
-    try
-    {
-      PriceQuery->Active = true;
-    }
-    catch (EOleException &eException)
-    {
-      Name->Caption = "Ошибка при сверке сумм";
-      PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
-      log(errormsg);
-      PriceQuery->Active = false;
-      return;
-    }
-   if(PriceQuery->RecordCount) USumm = MoneyAshyper(PriceQuery->FieldByName("Summ")->AsString);      // сумма по базе Учета
+   if(FormSverka->ShowModal(Silent) == mrOk)
+   {
+      return true;
+   }
    else
    {
-     PriceQuery->Active = false;
-     return;
+      return false;
    }
-PriceQuery->Active = false;
-PriceQuery->Close();
-
-// Скидка за текущий день
-//PriceQuery->SQL->Text = "select sum([price]*[quantity]) as Summ from delbill where billdatetime > '"+AnsiString(Year)+Format("%2.2D",ARRAYOFCONST(((int)Month)))+Format("%2.2D",ARRAYOFCONST(((int)Day)))+"'";
-   PriceQuery->SQL->Clear();
-   PriceQuery->SQL->Add("select isnull(sum(s),0) as Skidka from ");
-   PriceQuery->SQL->Add("(select BillNumber,(SUM(round(price*quantity,2)) % 0.5) as s from retail where ");
-   PriceQuery->SQL->Add("BillDateTime>'"  + FormatDateTime("yyyymmdd hh:mm:ss", LastEndSession) + "' ");
-   PriceQuery->SQL->Add("and PayType = ' 1' ");
-   PriceQuery->SQL->Add("and flag = 101 and SCash = '" + Star->Serial + "' ");
-   PriceQuery->SQL->Add("group by BillNumber) a");
-    try
-    {
-      PriceQuery->Active = true;
-    }
-    catch (EOleException &eException)
-    {
-      Name->Caption = "Ошибка SQL при сверке сумм";
-      PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
-      log(errormsg);
-      PriceQuery->Active = false;
-      return;
-    }
-if(PriceQuery->RecordCount)
-  {
-  USkidka = MoneyAshyper(PriceQuery->FieldByName("Skidka")->AsString);
-  USumm -= USkidka;
-  }
-else
-  {
-     PriceQuery->Active = false;
-     return;
-  }
-PriceQuery->Active = false;
-PriceQuery->Close();
-// Подарочные карты
-   CentralQuery->SQL->Clear();
-   CentralQuery->SQL->Add("select sum(Amount) as SumPK from GiftCardPayment where PayDate>'" + FormatDateTime("yyyymmdd  hh:mm:ss",LastEndSession) + "' and SCash='" + Star->Serial+ "'");
-    try
-    {
-      CentralQuery->Active = true;
-    }
-    catch (EOleException &eException)
-    {
-      PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
-      log(errormsg);
-      PriceQuery->Active = false;
-      return;
-    }
-
-   if(CentralQuery->RecordCount)
-  {
-  USumPK = MoneyAshyper(CentralQuery->FieldByName("SumPK")->AsString);
-  USumm -= USumPK;
-  }
-  CentralQuery->Active = false;
-
-if(USumm == FRSumm) {if(!Silent) MessageBox(GetActiveWindow(),"Итоги учета равны X-отчету","Сверка итогов",MB_OK);}
-else
-  {
-  BillSumm = MoneyAshyper(TSum->Text);
-
-  if(USumm + BillSumm == FRSumm)
-    {
-    if(!Silent) MessageBox(GetActiveWindow(),"Чек был пробит, записываем","Сверка итогов",MB_OK);
-    Star->BillNumber = Star->GetBillNumber();
-    if(!Silent && PayType == NO_PAYMENT) SelectPayType();
-    WriteRetail(PayType);
-    }
-  else
-    {
-    Str = "Учет "+MoneyAsString(USumm)+" X-отчет "+MoneyAsString(FRSumm);
-    MessageBox(GetActiveWindow(),Str.c_str(),"Сверка итогов",MB_OK);
-    }
-  } */
 }
 //---------------------------------------------------------------------------
 
@@ -3658,7 +3522,7 @@ else
    // проверка
   if(!FailCountRetail && !FailCountPrice)
       {
-      StatusBar->Panels->Items[1]->Text = "Связь с сервером есть";
+      StatusBar->Panels->Items[2]->Text = "Связь с сервером есть";
       StatusBar->Update();
       return true;
       }
@@ -3666,14 +3530,14 @@ else
     if(FailCountRetail > 1)
       {
       if(FailCountPrice>1)
-        StatusBar->Panels->Items[1]->Text = "Связи нет!";
+        StatusBar->Panels->Items[2]->Text = "Связи нет!";
       else
-        StatusBar->Panels->Items[1]->Text = "Цены-Ок Продажи-нет";
+        StatusBar->Panels->Items[2]->Text = "Цены-Ок Продажи-нет";
       }
     else
       {
       if(FailCountPrice>1)
-        StatusBar->Panels->Items[1]->Text = "Цены-Нет Продажи-Ок";
+        StatusBar->Panels->Items[2]->Text = "Цены-Нет Продажи-Ок";
       else
         return false;
       }
@@ -3809,29 +3673,31 @@ bool __fastcall TMainWindow::GetSerialID()
   res = true;
   try
   {
-//    CentralConnection->Connected = true;
-      CentralQuery->Active = true;
+//      CentralConnection->Connected = true;
+        CentralQuery->Active = true;
   }
   catch (EOleException &eException)
   {
-    AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
-    log(errormsg);
-    res = false;
+     AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
+     log(errormsg);
+     res = false;
+//     SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
   }
-
   if(res)
   {
-    ret = CentralQuery->FieldByName("Id")->AsString;
-    if( ret != "")
-    {
-      Star->SerialID = ret;
-    }
-    else
-    {
-      res = false;
-    }
+     ret = CentralQuery->FieldByName("Id")->AsString;
+     if( ret != "")
+     {
+        Star->SerialID = ret;
+     }
+     else
+     {
+        res = false;
+     }
   }
- CentralQuery->Active = false;
+  CentralQuery->Active = false;
+
   if(res)
   {
    //И добавим результат локально если удалось извлечь его центрально
@@ -3870,7 +3736,7 @@ bool __fastcall TMainWindow::GetSerialID()
    PriceQuery->Close();
    return true;
   }
-  else //Если же результата нет и центрально, нужно регистрировать ФР в центре
+  else  //Если же результата нет и центрально, нужно регистрировать ФР в центре
   {
      CentralQuery->SQL->Text = "INSERT INTO SCAsh VALUES ('"+Star->Serial+"')";
     try
@@ -3879,7 +3745,8 @@ bool __fastcall TMainWindow::GetSerialID()
     }
     catch (EOleException &eException)
     {
-
+      //SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
       AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
       log(errormsg);
       CentralQuery->Active = false;
@@ -4025,12 +3892,13 @@ else
 // ищем подарочную карту по коду, определяем ее состояние
 bool __fastcall TMainWindow::SeekGiftCard(AnsiString Code)
 {
+  if(!GetConnStatus(false)) return false;
   //Поиск в таблице подарочных карт
   bool res,ret;
   AnsiString Message,IDNomL,LPrice,LIDNom,LCSN,LNDS,LOff,Gift,LName,LMeas,LValidity,LStartDate;
   ret = true;
 
-  CentralQuery->SQL->Text = "SELECT ScanCode,Validity,Nominal,Balance,ISNULL(StartDate,CURRENT_TIMESTAMP) as StartDate,Balance,flag, FROM GiftCard WHERE Scancode = '" + Code + "'";
+  CentralQuery->SQL->Text = "SELECT ScanCode,Validity,Nominal,Balance,ISNULL(StartDate,CURRENT_TIMESTAMP) as StartDate,Balance,flag, sys.fn_varbintohexstr(IDNom) as IDNom FROM GiftCard WHERE Scancode = '" + Code + "'";
   res = true;
   try
   {
@@ -4043,6 +3911,8 @@ bool __fastcall TMainWindow::SeekGiftCard(AnsiString Code)
     AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
     log(errormsg);
     res = false;
+    //SetConnStatus(false);
+    SetEvent(evSQLConnStatusOK);
   }
 
   if(!res)
@@ -4187,6 +4057,7 @@ return R;
 //---------------------------------------------------------------------------
 bool __fastcall TMainWindow::ShowGiftCard(AnsiString Code,AnsiString CapMsg,int ButtonType)
 {
+  if(GetConnStatus(false)) return false;
   bool res;
   AnsiString Message,PayD,PayS;
   Message = "Подарочная карта "+Code;
@@ -4200,11 +4071,12 @@ bool __fastcall TMainWindow::ShowGiftCard(AnsiString Code,AnsiString CapMsg,int 
   }
   catch (EOleException &eException)
   {
-     Name->Caption = "Ошибка SQL. Немедленно прекратить работу!";
      PlaySound("oy.wav",0,SND_ASYNC);
      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
      log(errormsg);
      res = false;
+     //SetConnStatus(false);
+     SetEvent(evSQLConnStatusOK);
   }
 
   if(!res)
@@ -4239,6 +4111,8 @@ bool __fastcall TMainWindow::ShowGiftCard(AnsiString Code,AnsiString CapMsg,int 
      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
      log(errormsg);
      res = false;
+     //SetConnStatus(false);
+     SetEvent(evSQLConnStatusOK);
   }
     if(!res || (CentralQuery->FieldByName("ScanCode")->AsString != Code))
      { //Нет платежей
@@ -4294,6 +4168,7 @@ void __fastcall TMainWindow::ActivateGiftCards(TStringGrid *Grid,int RowNum)
 
 bool __fastcall TMainWindow::ActivateGiftCard(AnsiString Code)
 {
+  if(GetConnStatus(false)) return false;
   CentralQuery->SQL->Clear();
   CentralQuery->SQL->Add("update GiftCard set flag = 2,ActivationDate = CURRENT_TIMESTAMP,StartDate = ISNULL(StartDate,CURRENT_TIMESTAMP),Balance = Nominal");
   CentralQuery->SQL->Add(",Sklad = 0x" + Department);
@@ -4314,6 +4189,8 @@ bool __fastcall TMainWindow::ActivateGiftCard(AnsiString Code)
         AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
         log(errormsg);
         CentralConnection->Connected = false;
+//        SetConnStatus(false);
+        SetEvent(evSQLConnStatusOK);
         return false;
      }
       CentralConnection->Connected = false;
@@ -4418,6 +4295,7 @@ return true;
 // отражение оплаты подарочными картами на сервере
 bool __fastcall TMainWindow::GiftCardDoPayments()
 {
+   if(GetConnStatus(false)) return false;
    if(GiftItemData.size() == 0) return true;
    std::vector<GiftCardData>::iterator it;
 //Изменить баланс карты
@@ -4454,6 +4332,8 @@ bool __fastcall TMainWindow::GiftCardDoPayments()
          CentralConnection->RollbackTrans();
          log(errormsg);
          CentralConnection->Connected = false;
+//         SetConnStatus(false);
+         SetEvent(evSQLConnStatusOK);
          return false;
     }
     CentralConnection->CommitTrans();
@@ -4490,6 +4370,7 @@ return true;
 // печать информации по подарочным картам
 void __fastcall TMainWindow::N19Click(TObject *Sender)
 {
+  if(GetConnStatus(false)) return;
   AnsiString s,n,c;
   bool res;
 
@@ -4510,6 +4391,8 @@ void __fastcall TMainWindow::N19Click(TObject *Sender)
       CentralConnection->Connected = false;
       CentralQuery->Active = false;
       res = false;
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
     }
 
   if(!res)
@@ -5211,6 +5094,7 @@ return res;
 // добавление товара в Grid подарков
 void __fastcall TMainWindow::AddToPresentGrid(TStringGrid *Grid)
 {
+ if(GetConnStatus(false)) return;
  //bool res;
  ClearGrid(Grid);
  AnsiString ID ="";
@@ -5393,6 +5277,7 @@ void __fastcall TMainWindow::ClearPresentClick(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall TMainWindow::UpdateLocalCounts()
 {
+if(GetConnStatus(false)) return false;
 AnsiString str;
 // запрашиваем счетчики из центральной базы
 CentralQuery->SQL->Clear();
@@ -5408,6 +5293,8 @@ CentralQuery->SQL->Text = "select sys.fn_varbintohexstr(IDStock) as IDStock,MaxP
      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
      errormsg = "Ошибка проверки чтения счетчиков " + errormsg;
      log(errormsg);
+//     SetConnStatus(false);
+     SetEvent(evSQLConnStatusOK);
      return false;
    }
 // обновляем счетчики в локальной базе
@@ -5441,6 +5328,7 @@ CentralQuery->SQL->Text = "select sys.fn_varbintohexstr(IDStock) as IDStock,MaxP
 //---------------------------------------------------------------------
 bool __fastcall TMainWindow::UpdateCentralCounts(TStringGrid *Grid)
 {
+ if(GetConnStatus(false)) return false;
  int rows;
  bool res = true;
    AnsiString IDNomPr;
@@ -5462,6 +5350,8 @@ bool __fastcall TMainWindow::UpdateCentralCounts(TStringGrid *Grid)
          log(eException.Message);
          rows = 0;
          res = false;
+//         SetConnStatus(false);
+         SetEvent(evSQLConnStatusOK);
        }
        Grid->Cells[8][i] = rows;
        res = (rows != 0);
@@ -5476,6 +5366,7 @@ bool __fastcall TMainWindow::UpdateCentralCounts(TStringGrid *Grid)
 //-------------------------------------------------------------------------
 bool __fastcall TMainWindow::CheckCentralCounts(TStringGrid *Grid)
 {
+   if(GetConnStatus(false)) return true;
    bool res = true;
    int Quantity = 0;
    int i, k;
@@ -5511,6 +5402,8 @@ bool __fastcall TMainWindow::CheckCentralCounts(TStringGrid *Grid)
 //            ShowMessage(Str);
             log(Str);
             res = false;
+//            SetConnStatus(false);
+            SetEvent(evSQLConnStatusOK);
           }
          if(CentralQuery->RecordCount == 0)
          {
@@ -7069,9 +6962,9 @@ void __fastcall TMainWindow::ReturnBCClick(TObject *Sender)
 Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
 {
    Delivery ret;
-   if(Code.Length() != 12) return ret;
+   if(Code.Length() != 12 || !GetConnStatus(false)) return ret;
    TADOQuery *Query;
-   Query = PriceQuery;
+   Query = CentralQuery;
    Query->SQL->Clear();
    Query->SQL->Add("DECLARE @ean nvarchar(12)");
    Query->SQL->Add("DECLARE @t nvarchar(20)");
@@ -7097,7 +6990,9 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
       PlaySound("oy.wav",0,SND_ASYNC);
       AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
       log(errormsg);
-      PriceQuery->Active = false;
+      Query->Active = false;
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
       return ret;
    }
    if(Query->RecordCount == 0) {Query->Active = false; return ret;}
@@ -7165,6 +7060,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
    if(enable)
    {
       Grid->Enabled = false;
+      PickupGrid->Enabled = true;
       switch (data->Status)
       {
          case 0: // это чек - передача на хранение
@@ -7180,6 +7076,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
             BillPickup = true;
             break;
          case 2: // просто отображаем отчет о доставке
+            PickupGrid->Enabled = false;
             lbDelivery->Caption = "Отправлено";
             lbPickup->Caption = "";
             DeliveryPushGrid(&data->Items, DeliveryGrid, deliveryCols);
@@ -7236,6 +7133,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
       panelDelivery->Visible = false;
       BillPickup = false;
       Grid->Enabled = true;
+      PickupGrid->Enabled = true;
    }
 }
 //----------------------------------------------------------------------------
@@ -7392,6 +7290,7 @@ int __fastcall TMainWindow::SearchInGrid(AnsiString str, TStringGrid *Grid, int 
 //-------------------------------------------------------------------------
 void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
 {
+   if(!PickupGrid->Enabled) return;
    std::vector<Item> ItemList;
    for(int i = 1; i < PickupGrid->RowCount; i++)
    {
@@ -7440,6 +7339,16 @@ void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
 void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 {
 
+   if(!Grid->Cells[PG_ID_COL][1].IsEmpty())
+   {
+      ShowMessage("Сначала очистите номенклатуру.");
+      return;
+   }
+/*   if(!ComboPayGrid->Cells[CP_ID_COL][1].IsEmpty())
+   {
+      ShowMessage("Сначала очистите платежи.");
+      return;
+   } */
    if(panelDelivery->Visible)
    {
       if(DeliveryGrid->Cells[DG_ID_COL][1].IsEmpty()) return;
@@ -7447,6 +7356,7 @@ void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
    }
    else
    {
+      deliveryDocument = Delivery();
       ShowDeliveryPanel(true, &deliveryDocument);
    }
 
@@ -7456,57 +7366,58 @@ void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 
 AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
 {
-   PriceQuery->SQL->Clear();
-   PriceQuery->SQL->Add("BEGIN TRY");
-   PriceQuery->SQL->Add("BEGIN TRAN");
-   PriceQuery->SQL->Add("DECLARE @sc nvarchar(12) = (SELECT RIGHT(CONVERT(BIGINT, CONVERT(BINARY(6), NEWID())), 12))");
-   PriceQuery->SQL->Add("DECLARE @now datetime = CURRENT_TIMESTAMP");
-   PriceQuery->SQL->Add("DECLARE @ident as int");
-   PriceQuery->SQL->Add("INSERT INTO Delivery (ScanCode, BillNumber, [Date], DeliveryDate, [Type])  VALUES ");
-   PriceQuery->SQL->Add("(@sc, :billnumber, :date, :deliverydate, :type)");
-   PriceQuery->SQL->Add("SET @ident = SCOPE_IDENTITY()");
-   PriceQuery->SQL->Add("INSERT INTO DeliveryItems (DocID, IDNom, Quantity, Price) VALUES");
+   if(!GetConnStatus(false) || data->BillNumber == "") return "";
+   CentralQuery->SQL->Clear();
+   CentralQuery->SQL->Add("BEGIN TRY");
+   CentralQuery->SQL->Add("BEGIN TRAN");
+   CentralQuery->SQL->Add("DECLARE @sc nvarchar(12) = (SELECT RIGHT(CONVERT(BIGINT, CONVERT(BINARY(6), NEWID())), 12))");
+   CentralQuery->SQL->Add("DECLARE @now datetime = CURRENT_TIMESTAMP");
+   CentralQuery->SQL->Add("DECLARE @ident as int");
+   CentralQuery->SQL->Add("INSERT INTO Delivery (ScanCode, BillNumber, [Date], DeliveryDate, [Type])  VALUES ");
+   CentralQuery->SQL->Add("(@sc, :billnumber, :date, :deliverydate, :type)");
+   CentralQuery->SQL->Add("SET @ident = SCOPE_IDENTITY()");
+   CentralQuery->SQL->Add("INSERT INTO DeliveryItems (DocID, IDNom, Quantity, Price) VALUES");
    bool comma = false;
    for(std::vector<DeliveryItems>::iterator it = data->Items.begin(); it != data->Items.end(); ++it)
    {
-      if(comma) PriceQuery->SQL->Add(",");
-      PriceQuery->SQL->Add("(@ident," + it->IDNom + ",");
-      PriceQuery->SQL->Add(QuantityAsString(it->Quantity) + ",");
-      PriceQuery->SQL->Add(MoneyAsString(it->Price) + ")");
+      if(comma) CentralQuery->SQL->Add(",");
+      CentralQuery->SQL->Add("(@ident," + it->IDNom + ",");
+      CentralQuery->SQL->Add(QuantityAsString(it->Quantity) + ",");
+      CentralQuery->SQL->Add(MoneyAsString(it->Price) + ")");
       comma = true;
    }
-   PriceQuery->SQL->Add("INSERT INTO DeliveryStatus (DocID, [Date], [Status], SCash, Operator) VALUES");
-   PriceQuery->SQL->Add("(@ident, @now, :status, :serial, :casname)");
-   PriceQuery->SQL->Add("SELECT @sc as ScanCode");
-   PriceQuery->SQL->Add("COMMIT TRAN");
-   PriceQuery->SQL->Add("END TRY");
-   PriceQuery->SQL->Add("BEGIN CATCH");
-   PriceQuery->SQL->Add("IF @@TRANCOUNT > 0 ROLLBACK TRAN;");
-   PriceQuery->SQL->Add("DECLARE @ErrorMessage NVARCHAR(4000);");
-   PriceQuery->SQL->Add("DECLARE @ErrorSeverity INT;");
-   PriceQuery->SQL->Add("DECLARE @ErrorState INT;");
-   PriceQuery->SQL->Add("SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE();");
-   PriceQuery->SQL->Add("RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);");
-   PriceQuery->SQL->Add("END CATCH");
-//   PriceQuery->Parameters->ParseSQL(PriceQuery->SQL->Text, True);
+   CentralQuery->SQL->Add("INSERT INTO DeliveryStatus (DocID, [Date], [Status], SCash, Operator) VALUES");
+   CentralQuery->SQL->Add("(@ident, @now, :status, :serial, :casname)");
+   CentralQuery->SQL->Add("SELECT @sc as ScanCode");
+   CentralQuery->SQL->Add("COMMIT TRAN");
+   CentralQuery->SQL->Add("END TRY");
+   CentralQuery->SQL->Add("BEGIN CATCH");
+   CentralQuery->SQL->Add("IF @@TRANCOUNT > 0 ROLLBACK TRAN;");
+   CentralQuery->SQL->Add("DECLARE @ErrorMessage NVARCHAR(4000);");
+   CentralQuery->SQL->Add("DECLARE @ErrorSeverity INT;");
+   CentralQuery->SQL->Add("DECLARE @ErrorState INT;");
+   CentralQuery->SQL->Add("SELECT @ErrorMessage = ERROR_MESSAGE(), @ErrorSeverity = ERROR_SEVERITY(), @ErrorState = ERROR_STATE();");
+   CentralQuery->SQL->Add("RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);");
+   CentralQuery->SQL->Add("END CATCH");
+//   CentralQuery->Parameters->ParseSQL(CentralQuery->SQL->Text, True);
 
-   PriceQuery->Parameters->ParamByName("billnumber")->Value = data->BillNumber;
-   PriceQuery->Parameters->ParamByName("date")->Value = Now();
-   PriceQuery->Parameters->ParamByName("deliverydate")->Value = 0;
-   PriceQuery->Parameters->ParamByName("type")->DataType = ftInteger;
-   PriceQuery->Parameters->ParamByName("type")->Value = data->Type;
-   PriceQuery->Parameters->ParamByName("status")->DataType = ftInteger;
-   PriceQuery->Parameters->ParamByName("status")->Value = data->Status;
-   PriceQuery->Parameters->ParamByName("serial")->Value = data->CashBox;
-   PriceQuery->Parameters->ParamByName("casname")->Value = data->Operator;
-//   PriceQuery->Parameters->ParamByName("date")->DataType = data->DateTime;
+   CentralQuery->Parameters->ParamByName("billnumber")->Value = data->BillNumber;
+   CentralQuery->Parameters->ParamByName("date")->Value = Now();
+   CentralQuery->Parameters->ParamByName("deliverydate")->Value = 0;
+   CentralQuery->Parameters->ParamByName("type")->DataType = ftInteger;
+   CentralQuery->Parameters->ParamByName("type")->Value = data->Type;
+   CentralQuery->Parameters->ParamByName("status")->DataType = ftInteger;
+   CentralQuery->Parameters->ParamByName("status")->Value = data->Status;
+   CentralQuery->Parameters->ParamByName("serial")->Value = data->CashBox;
+   CentralQuery->Parameters->ParamByName("casname")->Value = data->Operator;
+//   CentralQuery->Parameters->ParamByName("date")->DataType = data->DateTime;
    _di_Errors        errCollection;
    _di_Error        errSingle;
    int iCount = 0;
    int SQL_RAISERROR_CODE =0;
    try
    {
-      PriceQuery->Active = true;
+      CentralQuery->Active = true;
       errCollection = CashConnection->Errors;
       iCount = errCollection->Count;
       for(int i = 0; i < iCount; i++)
@@ -7523,9 +7434,11 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
    {
       Name->Caption = "Ошибка SQL. Немедленно прекратить работу!";
       PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
+      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
       log(errormsg);
-      PriceQuery->Active = false;
+      CentralQuery->Active = false;
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
       return "";
    }
    catch (_di_Errors &errCollection)
@@ -7540,41 +7453,46 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
       {
          errCollection->Get_Item(i,errSingle);
          errSingle->Get_NativeError(errorCode);
-         errormsg = " Ошибка SQL: Code = " + IntToStr(errSingle->NativeError) + " Description: " + errSingle->Description + " TSQL: " + PriceQuery->SQL->Text;
+         errormsg = " Ошибка SQL: Code = " + IntToStr(errSingle->NativeError) + " Description: " + errSingle->Description + " TSQL: " + CentralQuery->SQL->Text;
          log(errormsg);
       }
-      PriceQuery->Active = false;
+      CentralQuery->Active = false;
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
       return "";
    }
-   AnsiString sc = PriceQuery->FieldByName("ScanCode")->AsString;
-   PriceQuery->Active = false;
+   AnsiString sc = CentralQuery->FieldByName("ScanCode")->AsString;
+   CentralQuery->Active = false;
    return sc;
 }
 //--------------------------------------------------------------------------
 void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data)
 {
-   PriceQuery->SQL->Clear();
-   PriceQuery->SQL->Add("INSERT INTO DeliveryStatus ([DocID],[Date],[Status],[Scash],[Operator]) VALUES");
-   PriceQuery->SQL->Add("( :docid, :date, :status, :cashbox, :operator)");
+   if(!GetConnStatus(false)) return;
+   CentralQuery->SQL->Clear();
+   CentralQuery->SQL->Add("INSERT INTO DeliveryStatus ([DocID],[Date],[Status],[Scash],[Operator]) VALUES");
+   CentralQuery->SQL->Add("( :docid, :date, :status, :cashbox, :operator)");
 
-   PriceQuery->Parameters->ParamByName("date")->Value = data->StatusDate;
-   PriceQuery->Parameters->ParamByName("status")->DataType = ftInteger;
-   PriceQuery->Parameters->ParamByName("status")->Value = data->Status;
-   PriceQuery->Parameters->ParamByName("cashbox")->Value = data->CashBox;
-   PriceQuery->Parameters->ParamByName("operator")->Value = data->Operator;
-   PriceQuery->Parameters->ParamByName("docid")->DataType = ftLargeint;
-   PriceQuery->Parameters->ParamByName("docid")->Value = data->DocID;
-   
+   CentralQuery->Parameters->ParamByName("date")->Value = data->StatusDate;
+   CentralQuery->Parameters->ParamByName("status")->DataType = ftInteger;
+   CentralQuery->Parameters->ParamByName("status")->Value = data->Status;
+   CentralQuery->Parameters->ParamByName("cashbox")->Value = data->CashBox;
+   CentralQuery->Parameters->ParamByName("operator")->Value = data->Operator;
+   CentralQuery->Parameters->ParamByName("docid")->DataType = ftLargeint;
+   CentralQuery->Parameters->ParamByName("docid")->Value = data->DocID;
+
    try
    {
-      PriceQuery->ExecSQL();
+      CentralQuery->ExecSQL();
    }
    catch (EOleException &eException)
    {
       Name->Caption = "Ошибка SQL. Немедленно прекратить работу!";
       PlaySound("oy.wav",0,SND_ASYNC);
-      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
+      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
       log(errormsg);
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
       return;
    }
 }
@@ -7584,7 +7502,7 @@ void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data)
 
 void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc)
 {
-
+   if(Doc->BillNumber == "" || Doc->Items.size() == 0) return;
    Star->PrintF("Документ на доставку", 2);
    Star->Feed(1);
    Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
@@ -7602,23 +7520,25 @@ void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc)
 
    }
    Star->PrintF(AnsiString::StringOfChar('-', 50), 5);
-   DeliveryItemsPrint(&Doc->Items);
+   AnsiString str = "На сумму: ";
+   str += MoneyAsString(DeliveryItemsPrint(&Doc->Items));
+   str = AnsiString::StringOfChar(' ', 21 - str.Length()) + str;
+   Star->PrintF(str, 4);
    Star->Feed(2);
    Star->PrintF("Подпись:______________________", 1);
-   Star->Feed(1);
+//   Star->Feed(1);
    Star->CRLF();
 }
 //----------------------------------------------------------------------
 // запрос документа из базы данных, вывод в виде структуры
 
-Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
+Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
 {
    TADOQuery *Query;
    Delivery ret;
+   if(!GetConnStatus(false)) return ret;
    // переключатель откуда брать информацию из локальной базы или из общей
-   if(local)  Query = PriceQuery;
-   else Query = CentralQuery;
-
+   Query = CentralQuery;
    Query->SQL->Clear();
    Query->SQL->Add("SELECT d.*, ds.* FROM Delivery d");
    Query->SQL->Add("CROSS APPLY");
@@ -7635,6 +7555,8 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + Query->SQL->Text;
      log(errormsg);
      Query->Active = false;
+//     SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
      return ret;
      //     return Delivery(); // возврат пустой структуры
    }
@@ -7668,6 +7590,9 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local)
       AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + Query->SQL->Text;
       log(errormsg);
       Query->Active = false;
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
+      ret = Delivery(); // чтобы возвращать только целостное значение;
       return ret;
     }
 
@@ -7728,6 +7653,7 @@ void __fastcall TMainWindow::DeliveryPushGrid(std::vector<DeliveryItems> *data, 
 std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols)
 {
    std::vector<DeliveryItems> ret;
+   if(Grid->Cells[cols["id"]][1].IsEmpty()) return ret;
    for(int i = 1; i < Grid->RowCount; i++)
    {
       ret.push_back(DeliveryItems(Grid->Cells[cols["idnom"]][i],
@@ -7749,7 +7675,8 @@ AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn)
 //-------------------------------------------------------------------------
 void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items)
 {
-
+   if(Doc->BillNumber == "" || Doc->Items.size() == 0 || Items->size() == 0) return;
+   hyper sum = 0;
    Star->PrintF("  Разностный отчет", 2);
    Star->Feed(1);
    Star->PrintF("Дата: " + FormatDateTime("dd.mm.yyyy hh:mm:ss",Doc->DateTime), 7);
@@ -7757,19 +7684,27 @@ void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<Del
    Star->PrintEAN(_atoi64(Doc->ScanCode.SubString(1,12).c_str()));
    Star->PrintF(" ", 7);
    Star->PrintF("Принято на хранение:", 4);
-   DeliveryItemsPrint(&Doc->Items);
+   AnsiString str = "На сумму: ";
+   str += MoneyAsString(DeliveryItemsPrint(&Doc->Items));
+   str = AnsiString::StringOfChar(' ', 21 - str.Length()) + str;
+   Star->PrintF(str, 4);
    Star->Feed(1);
    Star->PrintF("Не найдены товары:", 4);
-   DeliveryItemsPrint(Items);
+   str = "На сумму: ";
+   str += MoneyAsString(DeliveryItemsPrint(Items));
+   str = AnsiString::StringOfChar(' ', 21 - str.Length()) + str;
+   Star->PrintF(str, 4);
    Star->Feed(2);
    Star->PrintF("Подпись:______________________", 1);
-   Star->Feed(1);
+//   Star->Feed(1);
    Star->CRLF();
 }
 //---------------------------------------------------------------------------
-void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items)
+hyper __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items)
 {
+   if(Items->size() == 0) return 0;
    std::vector<AnsiString> ItemString;
+   hyper sum = 0;
    int n = 0;
    AnsiString name;
    for(std::vector<DeliveryItems>::iterator it = Items->begin(); it != Items->end(); ++it)
@@ -7778,6 +7713,7 @@ void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Item
       ItemString.clear();
       name = IntToStr(n) + ". " + it->ItemScanCode + " " + it->Name;
       ItemString = GenerateItemString(name, it->Quantity, it->Price, 50);
+      sum += X(it->Price, it->Quantity);
       // Печатаем позицию
       for(std::vector<AnsiString>::iterator j = ItemString.begin(); j != ItemString.end(); ++j)
       {
@@ -7785,6 +7721,7 @@ void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Item
       }
       Star->PrintF(AnsiString::StringOfChar('-', 50), 5);
    }
+   return sum;
 }
 //-----------------------------------------------------------------------
 void __fastcall TMainWindow::DeliveryInitClick(TObject *Sender)
@@ -7796,4 +7733,67 @@ void __fastcall TMainWindow::DeliveryInitClick(TObject *Sender)
    CodeEnter(Code);
 }
 //---------------------------------------------------------------------------
+void __fastcall TMainWindow::SetConnStatus(bool conn)
+{
+   SQLConnOK = conn;
+   if(conn)
+   {
+      StatusBar->Panels->Items[1]->Text = "Нормальная работа";
+   }
+   else
+   {
+      StatusBar->Panels->Items[1]->Text = "Функции с ПК и Доставкой не доступны";
+   }
+}
+//-------------------------------------------------------------------------
+bool __fastcall TMainWindow::GetConnStatus(bool silent)
+{
+   if(!silent && !SQLConnOK)
+   {
+      Name->Caption = "Нет связи с ЦС. Функции ПК и Доставки не доступны.";
+      PlaySound("oy.wav",0,SND_ASYNC);
+   }
+ return SQLConnOK;
+}
+void __fastcall TMainWindow::DeliveryDocRepeatClick(TObject *Sender)
+{
 
+   if(deliveryDocument.BillNumber == "")
+   {
+//      Delivery doc;
+      AnsiString ScanCode = GetLastDeliveryDoc();
+      deliveryDocument = GetDeliveryDoc(ScanCode);
+      DeliveryPrint(&deliveryDocument);
+   }
+   else
+   {
+      DeliveryPrint(&deliveryDocument);
+   }
+}
+//---------------------------------------------------------------------------
+AnsiString TMainWindow::GetLastDeliveryDoc()
+{
+   if(!GetConnStatus(false)) return "";
+   CentralQuery->SQL->Clear();
+   CentralQuery->SQL->Add("SELECT ScanCode FROM Delivery WHERE DocID =");
+   CentralQuery->SQL->Add("(SELECT TOP 1 DocID FROM DeliveryStatus WHERE SCash='" + Star->Serial + "' ORDER BY [date] DESC)");
+   try
+   {
+      CentralQuery->Active = true;
+   }
+   catch (EOleException &eException)
+   {
+      Name->Caption = "Ошибка запроса ЦС. Некоторые функции могут быть недоступны.";
+      PlaySound("oy.wav",0,SND_ASYNC);
+      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + CentralQuery->SQL->Text;
+      log(errormsg);
+//      SetConnStatus(false);
+      SetEvent(evSQLConnStatusOK);
+      CentralQuery->Active = false;
+      return "";
+   }
+   AnsiString ret = "";
+   if(CentralQuery->RecordCount > 0)  ret = CentralQuery->FieldByName("ScanCode")->AsString;
+   CentralQuery->Active = false;
+   return ret;
+}
