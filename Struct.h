@@ -242,7 +242,7 @@ struct Delivery
       this->Status = status;
       this->StatusDate = sd;
       this->CashBox = cb;
-      this->Operator = op;
+      this->Operator = op.SubString(1,15);
    }
    void clear()
    {

@@ -4057,7 +4057,7 @@ return R;
 //---------------------------------------------------------------------------
 bool __fastcall TMainWindow::ShowGiftCard(AnsiString Code,AnsiString CapMsg,int ButtonType)
 {
-  if(GetConnStatus(false)) return false;
+  if(!GetConnStatus(false)) return false;
   bool res;
   AnsiString Message,PayD,PayS;
   Message = "Подарочная карта "+Code;
@@ -7049,7 +7049,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
             data->Status = 1;
             data->StatusDate = Now();
             data->CashBox = Star->Serial;
-            data->Operator = CasName;
+            data->Operator = CasName.SubString(1,15);
             data->ScanCode = PushDeliveryDoc(data);
 //            Delivery doc = GetDeliveryDoc(data->ScanCode, true);
             for(int i=0; i<3;i++) DeliveryPrint(data);
@@ -7072,7 +7072,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
                data->Status = 2;
                data->StatusDate = Now();
                data->CashBox = Star->Serial;
-               data->Operator = CasName;
+               data->Operator = CasName.SubString(1,15);
                SetDeliveryStatus(data);
                for(int i=0; i<3;i++) DeliveryPrint(data);
             }
@@ -7292,7 +7292,7 @@ void __fastcall TMainWindow::InvertGridsClick(TObject *Sender)
 
 void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 {
-
+   if(!NoCard && CardType != KASSIR_CARD && CardType != MANAGER_CARD) return;
    if(!Grid->Cells[PG_ID_COL][1].IsEmpty())
    {
       ShowMessage("Сначала очистите номенклатуру.");
@@ -7363,7 +7363,7 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
    CentralQuery->Parameters->ParamByName("status")->DataType = ftInteger;
    CentralQuery->Parameters->ParamByName("status")->Value = data->Status;
    CentralQuery->Parameters->ParamByName("serial")->Value = data->CashBox;
-   CentralQuery->Parameters->ParamByName("casname")->Value = data->Operator;
+   CentralQuery->Parameters->ParamByName("casname")->Value = data->Operator.SubString(1,15);
 //   CentralQuery->Parameters->ParamByName("date")->DataType = data->DateTime;
    _di_Errors        errCollection;
    _di_Error        errSingle;
