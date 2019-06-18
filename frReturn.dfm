@@ -1,6 +1,6 @@
 object frReturnForm: TfrReturnForm
-  Left = 553
-  Top = 190
+  Left = 209
+  Top = 164
   Width = 815
   Height = 564
   HorzScrollBar.Visible = False

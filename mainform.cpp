@@ -1615,7 +1615,7 @@ void __fastcall TMainWindow::FormKeyPress(TObject *Sender, char &Key)
         KeyPressDelete(Key);
         return;
     }
-    if(!Session)  // если смена не открыта
+    if(!Session && !panelDelivery->Visible)  // если смена не открыта
     {
       PlaySound("oy.wav",0,SND_ASYNC);
         Name->Caption = "Не открыта смена";
@@ -4933,52 +4933,6 @@ void __fastcall TMainWindow::InfoShow(bool PrEnter, bool Visible)
    PresentGrid->Visible = !Visible || !PrEnter;
    PlaySound("",0, SND_SYNC);
 }
-
-//-------------------------------------------------------------------------
-// поиск по IDNom
-/*AnsiString __fastcall TMainWindow::SeekName(AnsiString IDNom)
-{
-   PriceQuery->SQL->Clear();
-   PriceQuery->SQL->Add("select * price where Sklad = 0x" + Department);
-   PriceQuery->SQL->Add("and IDNom = " + IDNom);
-    try
-    {
-      PriceQuery->Active = true;
-    }
-    catch( ... )
-    {
-      Name->Caption = "Ошибка записи SQL. Немедленно прекратить работу!";
-      PlaySound("oy.wav",0,SND_ASYNC);
-      log("Ошибка проверки выполнения условий акций " + PriceQuery->SQL->Text);
-    }
-
-    if(PriceQuery->RecordCount == 0)
-    {
-      CentralQuery->SQL->Clear();
-      CentralQuery->SQL->Text = "select TOP 1 * from GiftCard where Sklad = 0x" + Department + " and IDNom = " + IDNom;
-      try
-      {
-         CentralQuery->Active = true;
-      }
-      catch(EOleException &eException)
-      {
-         AnsiString errormsg="EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\""  + CentralQuery->SQL->Text;
-//       ShowMessage(errormsg);
-         log(errormsg);
-       }
-    }
-
-  AnsiString res = PriceQuery->FieldByName("Name")->AsString;
-
-
-    PriceQuery->Active = false;
-    PriceQuery->Close();
-
-
-
-return res;
-}
-*/
 //-------------------------------------------------------------------
 // проверяем подарки на соответствие
 bool __fastcall TMainWindow::VerifyPresent(AnsiString IDNom, TStringGrid *StrGrid, int colNum)
