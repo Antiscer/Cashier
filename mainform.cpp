@@ -4305,7 +4305,6 @@ bool __fastcall TMainWindow::GiftCardDoPayments()
    CentralConnection->BeginTrans();
    for(it = GiftItemData.begin(); it != GiftItemData.end(); ++it)
    {
-//      CentralQuery->SQL->Add("DECLARE @date smalldatetime = CURRENT_TIMESTAMP");
       CentralQuery->SQL->Add("UPDATE GiftCard SET Balance = Balance - " + it->Sum );
       CentralQuery->SQL->Add(",flag = (CASE WHEN Balance - "+ it->Sum + " <= 0 then 3 else 2 end)");
       CentralQuery->SQL->Add("WHERE Scancode = '"+it->Code+"'");
