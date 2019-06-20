@@ -4167,7 +4167,7 @@ void __fastcall TMainWindow::ActivateGiftCards(TStringGrid *Grid,int RowNum)
 
 bool __fastcall TMainWindow::ActivateGiftCard(AnsiString Code)
 {
-  if(GetConnStatus(false)) return false;
+  if(!GetConnStatus(false)) return false;
   CentralQuery->SQL->Clear();
   CentralQuery->SQL->Add("update GiftCard set flag = 2,ActivationDate = CURRENT_TIMESTAMP,StartDate = ISNULL(StartDate,CURRENT_TIMESTAMP),Balance = Nominal");
   CentralQuery->SQL->Add(",Sklad = 0x" + Department);
@@ -4294,7 +4294,7 @@ return true;
 // отражение оплаты подарочными картами на сервере
 bool __fastcall TMainWindow::GiftCardDoPayments()
 {
-   if(GetConnStatus(false)) return false;
+   if(!GetConnStatus(false)) return false;
    if(GiftItemData.size() == 0) return true;
    std::vector<GiftCardData>::iterator it;
 //Изменить баланс карты
@@ -4369,7 +4369,7 @@ return true;
 // печать информации по подарочным картам
 void __fastcall TMainWindow::N19Click(TObject *Sender)
 {
-  if(GetConnStatus(false)) return;
+  if(!GetConnStatus(false)) return;
   AnsiString s,n,c;
   bool res;
 
@@ -5047,7 +5047,7 @@ return res;
 // добавление товара в Grid подарков
 void __fastcall TMainWindow::AddToPresentGrid(TStringGrid *Grid)
 {
- if(GetConnStatus(false)) return;
+ if(!GetConnStatus(false)) return;
  //bool res;
  ClearGrid(Grid);
  AnsiString ID ="";
@@ -5230,7 +5230,7 @@ void __fastcall TMainWindow::ClearPresentClick(TObject *Sender)
 //---------------------------------------------------------------------------
 bool __fastcall TMainWindow::UpdateLocalCounts()
 {
-if(GetConnStatus(false)) return false;
+if(!GetConnStatus(false)) return false;
 AnsiString str;
 // запрашиваем счетчики из центральной базы
 CentralQuery->SQL->Clear();
@@ -5281,7 +5281,7 @@ CentralQuery->SQL->Text = "select sys.fn_varbintohexstr(IDStock) as IDStock,MaxP
 //---------------------------------------------------------------------
 bool __fastcall TMainWindow::UpdateCentralCounts(TStringGrid *Grid)
 {
- if(GetConnStatus(false)) return false;
+ if(!GetConnStatus(false)) return false;
  int rows;
  bool res = true;
    AnsiString IDNomPr;
@@ -5319,7 +5319,7 @@ bool __fastcall TMainWindow::UpdateCentralCounts(TStringGrid *Grid)
 //-------------------------------------------------------------------------
 bool __fastcall TMainWindow::CheckCentralCounts(TStringGrid *Grid)
 {
-   if(GetConnStatus(false)) return true;
+   if(!GetConnStatus(false)) return true;
    bool res = true;
    int Quantity = 0;
    int i, k;
