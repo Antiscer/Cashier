@@ -1746,10 +1746,9 @@ void __fastcall TMainWindow::FormKeyPress(TObject *Sender, char &Key)
         if(Key == 27) return;
         if(Key == 13 && str.Length() > 0)
         {
-            pr = MoneyAshyper(str);
+            pr = QuantityAshyper(str);
             if(pr > 0)
             {
-
                 if(BillPickup)
                 {
                   MoveItemBetweenTable(IDNom->Caption, PickupGrid, DeliveryGrid);
@@ -1911,7 +1910,7 @@ void __fastcall TMainWindow::MeasureClick(TObject *Sender)
 {
     if(PresentEnter) return;
     if(!NoCard && CardType != KASSIR_CARD && CardType != MANAGER_CARD) return;
-    if(!cansetnum_flag && CardType == KASSIR_CARD) return;
+    if(!cansetnum_flag && CardType == KASSIR_CARD && !BillPickup) return;
     if(Nnum->Text.IsEmpty()) return;
     PlaySound("k.wav",0,SND_SYNC);
     InputQnty = true;
@@ -6930,8 +6929,8 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
    Query->SQL->Add("SET @billnumber = REPLICATE('0',6-len(@billnumber))+@billnumber+@t");
    Query->SQL->Add("SELECT pr.Scancode, rt.Billnumber, pr.Name, pr.Meas, rt.Price, rt.Quantity - ISNULL(di.Quantity,0) as Quantity, pr.NDS, sys.fn_varbintohexstr(rt.IDNom) as IDNom,");
    Query->SQL->Add("CURRENT_TIMESTAMP as date, 0 as DocID, 1 as Type, 0 as Status, CURRENT_TIMESTAMP as StatusDate, rt.SCash, rt.Operator FROM retail rt");
-   Query->SQL->Add("CROSS APPLY (SELECT TOP 1 * FROM price pr WHERE rt.IDnom = pr.IDnom) pr");
-   Query->SQL->Add("LEFT JOIN DeliveryItems di ON di.IDNom = rt.IDnom AND di.DocID IN (select DocID from Delivery where BillNumber = @billnumber)");
+   Query->SQL->Add("CROSS APPLY (SELECT TOP 1 * FROM price pr WHERE rt.IDnom = pr.IDnom ORDER BY ScanCode DESC) pr ");
+   Query->SQL->Add("LEFT JOIN (select idnom, SUM(quantity) as quantity, sum(price) as price from deliveryitems where DocID IN (select DocID from Delivery where BillNumber = @billnumber) group by idnom) di ON di.IDNom = rt.IDnom");
    Query->SQL->Add("WHERE BillNumber=@billnumber AND flag > 100 AND rt.Sklad=0x" + Department);
    Query->SQL->Add("AND rt.Quantity - ISNULL(di.Quantity,0) > 0");
    try
@@ -7159,8 +7158,10 @@ void __fastcall TMainWindow::InitDeliveryPanel()
    PickupGrid->ColWidths[PIG_MEASURE_COL] = 60;
    PickupGrid->ColWidths[PIG_QUANTITY_COL] = 80;
    PickupGrid->ColWidths[PIG_PRICE_COL] = 80;
+   PickupGrid->ColWidths[PIG_CODE_COL] = 140;
    PickupGrid->ColWidths[PIG_NAME_COL] = PickupGrid->Width
                                     - PickupGrid->ColWidths[PIG_ID_COL]
+                                    - PickupGrid->ColWidths[PIG_CODE_COL]
                                     - PickupGrid->ColWidths[PIG_MEASURE_COL]
                                     - PickupGrid->ColWidths[PIG_QUANTITY_COL]
                                     - PickupGrid->ColWidths[PIG_PRICE_COL];
@@ -7194,15 +7195,18 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
 {
    int rowFrom = SearchInGrid(IdNom, FromGrid, PIG_IDNOM_COL);
    int rowTo = SearchInGrid(IdNom, ToGrid, DG_IDNOM_COL);
+   bool flag = InputQnty;
 
+   if(flag && rowFrom == 0) Qnty->Text = QuantityAsString(0);  // обнуляем кол-во если нет товара для переноса
    if(rowFrom == 0) return false;
  // контроль введенного количества
    hyper fq = QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom]); // количество из исходной таблицы
    hyper sq = QuantityAshyper(Qnty->Text); // введенное количество
-   if(sq > fq) Qnty->Text = QuantityAsString(fq);
+   if(sq > fq){ Qnty->Text = QuantityAsString(fq); flag = false;};
    if(rowTo > 0)
    {
       hyper tq = QuantityAshyper(ToGrid->Cells[DG_QUANTITY_COL][rowTo]); // количество в целевой таблицы
+      if(flag) tq -= 1000;
       tq += QuantityAshyper(Qnty->Text);
       ToGrid->Cells[DG_QUANTITY_COL][rowTo] = QuantityAsString(tq);
    }
@@ -7219,7 +7223,9 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
       ToGrid->Cells[DG_PRICE_COL][Row] = FromGrid->Cells[PIG_PRICE_COL][rowFrom];
       ToGrid->Cells[DG_IDNOM_COL][Row] = FromGrid->Cells[PIG_IDNOM_COL][rowFrom];
    }
-   FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
+   if(flag) FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
+            - QuantityAshyper(Qnty->Text) + 1000);
+   else FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
             - QuantityAshyper(Qnty->Text));
 
    if(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom]) == 0)
@@ -7711,18 +7717,10 @@ bool __fastcall TMainWindow::GetConnStatus(bool silent)
 }
 void __fastcall TMainWindow::DeliveryDocRepeatClick(TObject *Sender)
 {
-
-   if(deliveryDocument.BillNumber == "")
-   {
-//      Delivery doc;
-      AnsiString ScanCode = GetLastDeliveryDoc();
-      deliveryDocument = GetDeliveryDoc(ScanCode);
-      DeliveryPrint(&deliveryDocument);
-   }
-   else
-   {
-      DeliveryPrint(&deliveryDocument);
-   }
+   Delivery doc;
+   AnsiString ScanCode = GetLastDeliveryDoc();
+   doc = GetDeliveryDoc(ScanCode);
+   DeliveryPrint(&doc);
 }
 //---------------------------------------------------------------------------
 AnsiString TMainWindow::GetLastDeliveryDoc()

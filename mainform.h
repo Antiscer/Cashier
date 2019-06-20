@@ -99,12 +99,12 @@
 #define MR_RETURN_BC_OTHER_REG   207
 
 #define PIG_ID_COL         0
-#define PIG_NAME_COL       1
-#define PIG_MEASURE_COL    2
-#define PIG_QUANTITY_COL   3
-#define PIG_PRICE_COL      4
-#define PIG_IDNOM_COL      5
-#define PIG_CODE_COL       6
+#define PIG_CODE_COL       1
+#define PIG_NAME_COL       2
+#define PIG_MEASURE_COL    3
+#define PIG_QUANTITY_COL   4
+#define PIG_PRICE_COL      5
+#define PIG_IDNOM_COL      6
 #define PIG_STATUS_COL     7
 
 #define DG_ID_COL          0
