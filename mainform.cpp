@@ -7195,6 +7195,9 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
    int rowFrom = SearchInGrid(IdNom, FromGrid, PIG_IDNOM_COL);
    int rowTo = SearchInGrid(IdNom, ToGrid, DG_IDNOM_COL);
    bool flag = InputQnty;
+   static AnsiString lastIDNom = "";
+   static hyper lastQnty = 0;
+   static bool lastSetQnty = false;
 
    if(flag && rowFrom == 0) Qnty->Text = QuantityAsString(0);  // обнуляем кол-во если нет товара для переноса
    if(rowFrom == 0) return false;
@@ -7205,9 +7208,10 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
    if(rowTo > 0)
    {
       hyper tq = QuantityAshyper(ToGrid->Cells[DG_QUANTITY_COL][rowTo]); // количество в целевой таблицы
-      if(flag) tq -= 1000;
+      if(flag && IdNom == lastIDNom && !lastSetQnty) tq -= lastQnty;
       tq += QuantityAshyper(Qnty->Text);
       ToGrid->Cells[DG_QUANTITY_COL][rowTo] = QuantityAsString(tq);
+      lastQnty;
    }
    else
    {
@@ -7222,8 +7226,8 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
       ToGrid->Cells[DG_PRICE_COL][Row] = FromGrid->Cells[PIG_PRICE_COL][rowFrom];
       ToGrid->Cells[DG_IDNOM_COL][Row] = FromGrid->Cells[PIG_IDNOM_COL][rowFrom];
    }
-   if(flag) FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
-            - QuantityAshyper(Qnty->Text) + 1000);
+   if(flag && IdNom == lastIDNom && !lastSetQnty) FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
+            - QuantityAshyper(Qnty->Text) + lastQnty);
    else FromGrid->Cells[PIG_QUANTITY_COL][rowFrom] = QuantityAsString(QuantityAshyper(FromGrid->Cells[PIG_QUANTITY_COL][rowFrom])
             - QuantityAshyper(Qnty->Text));
 
@@ -7231,6 +7235,12 @@ bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid 
    {
       RemoveRow(FromGrid, rowFrom);
       RenumRow(FromGrid);
+   }
+   else
+   {
+      lastQnty = QuantityAshyper(Qnty->Text);
+      lastIDNom = IdNom;
+      lastSetQnty = InputQnty;
    }
 return true;
 }
