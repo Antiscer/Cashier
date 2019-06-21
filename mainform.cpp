@@ -7192,7 +7192,6 @@ void __fastcall TMainWindow::InitDeliveryPanel()
 // перенос позиций между таблицами
 bool __fastcall TMainWindow::MoveItemBetweenTable(AnsiString IdNom, TStringGrid *FromGrid, TStringGrid *ToGrid)
 {
-   //
    int rowFrom = SearchInGrid(IdNom, FromGrid, PIG_IDNOM_COL);
    int rowTo = SearchInGrid(IdNom, ToGrid, DG_IDNOM_COL);
    bool flag = InputQnty;
