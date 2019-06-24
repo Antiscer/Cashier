@@ -617,6 +617,7 @@ object MainWindow: TMainWindow
       Height = 321
       RowCount = 2
       TabOrder = 2
+      OnDrawCell = PickupGridDrawCell
     end
     object DeliveryGrid: TStringGrid
       Left = 488
@@ -626,6 +627,7 @@ object MainWindow: TMainWindow
       ColCount = 6
       RowCount = 2
       TabOrder = 3
+      OnDrawCell = DeliveryGridDrawCell
     end
   end
   object Menu: TMainMenu

@@ -256,6 +256,10 @@ __published:	// IDE-managed Components
    void __fastcall DeliveryDocClick(TObject *Sender);
    void __fastcall DeliveryInitClick(TObject *Sender);
    void __fastcall DeliveryDocRepeatClick(TObject *Sender);
+   void __fastcall PickupGridDrawCell(TObject *Sender, int ACol, int ARow,
+          TRect &Rect, TGridDrawState State);
+   void __fastcall DeliveryGridDrawCell(TObject *Sender, int ACol,
+          int ARow, TRect &Rect, TGridDrawState State);
 //   void __fastcall ReturnBCClick(TObject *Sender);
 private:	// User declarations
     CRITICAL_SECTION CS;
@@ -457,6 +461,7 @@ public:		// User declarations
    void __fastcall AddComboPay(AnsiString PayType, AnsiString Summ, TStringGrid *Grid);
    hyper __fastcall RestPayment();
    unsigned hyper __fastcall GridSum(TStringGrid *Grid, int colNum);
+   unsigned hyper __fastcall TMainWindow::GridSum(TStringGrid *Grid, int colPrice, int colQuantity);
    void __fastcall SetPayStatus(TStringGrid *Grid, int Row, int Status);
    bool Payments; // признак того, что есть платежи
    void __fastcall BulkSetPayStatus(TStringGrid *Grid, int Status);
@@ -497,10 +502,8 @@ public:		// User declarations
    int __fastcall TMainWindow::SearchInGrid(AnsiString string, TStringGrid *Grid, int colNum);
    AnsiString SeekBillNumber;
    AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data);
-   void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc);
-//   vector<Delivery> __fastcall TMainWindow::SeekDeliveryDoc(AnsiString Scancode);
+   void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc, bool Long);
    Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode);
-//void __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode, bool local, Delivery *dl);
    std::vector<AnsiString> __fastcall TMainWindow::GenerateItemString(AnsiString Str,unsigned hyper qnty, unsigned hyper price, int wide);
    std::map<AnsiString,int> pickupCols;
    std::map<AnsiString,int> deliveryCols;
@@ -509,11 +512,12 @@ public:		// User declarations
    std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *Grid, std::map<AnsiString,int> cols);
    void __fastcall TMainWindow::SetDeliveryStatus(Delivery *data);
    void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items);
-   hyper __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items);
+   void __fastcall TMainWindow::DeliveryItemsPrint(std::vector<DeliveryItems> *Items);
    bool SQLConnOK;
    void __fastcall TMainWindow::SetConnStatus(bool conn);
    bool __fastcall TMainWindow::GetConnStatus(bool silent);
    AnsiString TMainWindow::GetLastDeliveryDoc();
+   hyper __fastcall TMainWindow::GetSumDeliveryDoc(std::vector<DeliveryItems> *items);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;
