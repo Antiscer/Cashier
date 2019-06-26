@@ -1,12 +1,12 @@
 object MainWindow: TMainWindow
-  Left = 346
+  Left = 6
   Top = 142
   BiDiMode = bdLeftToRight
   BorderIcons = []
   BorderStyle = bsSingle
   Caption = 'Колорлон.Кассир.7.7 Онлайн'
-  ClientHeight = 592
-  ClientWidth = 1006
+  ClientHeight = 657
+  ClientWidth = 1346
   Color = clActiveBorder
   DockSite = True
   Font.Charset = DEFAULT_CHARSET
@@ -30,7 +30,7 @@ object MainWindow: TMainWindow
   TextHeight = 13
   object Label1: TLabel
     Left = 10
-    Top = 416
+    Top = 481
     Width = 62
     Height = 19
     Anchors = [akLeft, akBottom]
@@ -44,7 +44,7 @@ object MainWindow: TMainWindow
   end
   object Label2: TLabel
     Left = 10
-    Top = 469
+    Top = 534
     Width = 87
     Height = 19
     Anchors = [akLeft, akBottom]
@@ -58,7 +58,7 @@ object MainWindow: TMainWindow
   end
   object Label3: TLabel
     Left = 10
-    Top = 566
+    Top = 631
     Width = 57
     Height = 19
     Anchors = [akLeft, akBottom]
@@ -138,7 +138,7 @@ object MainWindow: TMainWindow
   end
   object Label7: TLabel
     Left = 346
-    Top = 472
+    Top = 537
     Width = 66
     Height = 19
     Anchors = [akLeft, akBottom]
@@ -167,8 +167,8 @@ object MainWindow: TMainWindow
     Visible = False
   end
   object Label8: TLabel
-    Left = 691
-    Top = 408
+    Left = 1031
+    Top = 473
     Width = 242
     Height = 19
     Anchors = [akRight, akBottom]
@@ -182,7 +182,7 @@ object MainWindow: TMainWindow
   end
   object Label9: TLabel
     Left = 10
-    Top = 525
+    Top = 590
     Width = 57
     Height = 19
     Anchors = [akLeft, akBottom]
@@ -195,8 +195,8 @@ object MainWindow: TMainWindow
     ParentFont = False
   end
   object PresentLabel: TLabel
-    Left = 679
-    Top = 54
+    Left = 1019
+    Top = 61
     Width = 243
     Height = 24
     Alignment = taRightJustify
@@ -239,7 +239,7 @@ object MainWindow: TMainWindow
   end
   object TSum: TEdit
     Left = 104
-    Top = 399
+    Top = 464
     Width = 235
     Height = 53
     TabStop = False
@@ -256,7 +256,7 @@ object MainWindow: TMainWindow
   end
   object Recived: TEdit
     Left = 104
-    Top = 455
+    Top = 520
     Width = 235
     Height = 53
     TabStop = False
@@ -273,7 +273,7 @@ object MainWindow: TMainWindow
   end
   object Change: TEdit
     Left = 104
-    Top = 508
+    Top = 573
     Width = 235
     Height = 53
     TabStop = False
@@ -291,7 +291,7 @@ object MainWindow: TMainWindow
   object Grid: TStringGrid
     Left = 0
     Top = 91
-    Width = 1234
+    Width = 1574
     Height = 70
     TabStop = False
     Anchors = [akLeft, akTop, akRight]
@@ -327,8 +327,8 @@ object MainWindow: TMainWindow
   end
   object StatusBar: TStatusBar
     Left = 0
-    Top = 567
-    Width = 1006
+    Top = 632
+    Width = 1346
     Height = 25
     Panels = <
       item
@@ -411,7 +411,7 @@ object MainWindow: TMainWindow
   end
   object TOff: TEdit
     Left = 344
-    Top = 495
+    Top = 560
     Width = 235
     Height = 53
     TabStop = False
@@ -428,8 +428,8 @@ object MainWindow: TMainWindow
     Visible = False
   end
   object GiftCardM: TMemo
-    Left = 571
-    Top = 424
+    Left = 911
+    Top = 489
     Width = 454
     Height = 129
     TabStop = False
@@ -447,8 +447,8 @@ object MainWindow: TMainWindow
     WordWrap = False
   end
   object PresentGrid: TStringGrid
-    Left = 244
-    Top = 396
+    Left = 417
+    Top = 461
     Width = 537
     Height = 165
     TabStop = False
@@ -468,8 +468,8 @@ object MainWindow: TMainWindow
     TabOrder = 0
   end
   object ComboPayGrid: TStringGrid
-    Left = 662
-    Top = 386
+    Left = 1002
+    Top = 451
     Width = 337
     Height = 177
     Anchors = [akRight, akBottom]
@@ -488,8 +488,8 @@ object MainWindow: TMainWindow
     OnKeyPress = ComboPayGridKeyPress
   end
   object panelDelivery: TPanel
-    Left = 8
-    Top = 72
+    Left = 192
+    Top = 64
     Width = 993
     Height = 433
     TabOrder = 12

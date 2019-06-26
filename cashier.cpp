@@ -21,6 +21,7 @@ USE("Struct.h", File);
 USEFORM("billprintc.cpp", BillPrint);
 USEFORM("frReturn.cpp", frReturnForm);
 USEFORM("fSverka.cpp", FormSverka);
+USEUNIT("Receipt.cpp");
 //---------------------------------------------------------------------------
 WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int)
 {

@@ -20,6 +20,7 @@
 #include "Struct.h"
 #include "frReturnForm.h"
 #include "fSverka.h"
+#include "receipt.h"
 
 #include <ComCtrls.hpp>
 #include <MPlayer.hpp>
@@ -117,6 +118,8 @@
 
 #define DELIVERY_DOC_TYPE_DELIVERY  1
 #define DELIVERY_DOC_TYPE_PICKUP    2
+
+
 
 //typedef int (*dynamic_card_auth)(char *, struct auth_answer13);
 //---------------------------------------------------------------------------
@@ -450,7 +453,7 @@ public:		// User declarations
    HANDLE hEvent1, hPrnEvent, evConnStatus, evSQLConnStatusOK;
 
 //   std::vector<BillData> mfBillData;
-   std::vector<BillItemLine> PrintLineData;
+//   std::vector<BillItemLine> PrintLineData;
    std::vector<BillItemLine> ShadowLineData;
    std::vector<BillItemLine> PickupBillData;
    std::vector<GiftCardData> GiftItemData;
@@ -518,6 +521,8 @@ public:		// User declarations
    bool __fastcall TMainWindow::GetConnStatus(bool silent);
    AnsiString TMainWindow::GetLastDeliveryDoc();
    hyper __fastcall TMainWindow::GetSumDeliveryDoc(std::vector<DeliveryItems> *items);
+   std::vector<BillItemLine> __fastcall GetProdItems();
+   Receipt *receipt;
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;

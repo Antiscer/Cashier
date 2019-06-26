@@ -19,6 +19,7 @@
 #include <vector>
 #include <map>
 
+
 #define CHEQUE_FILENAME "cheque.txt"
 #define FUNC_AUTH "card_authorize13"
 #define DDL_NAME "pilot_nt.dll"
@@ -706,7 +707,7 @@ void __fastcall TMainWindow::FormCreate(TObject *Sender)
     ClearBillData(); // очищаем структуру
 // Инициализация векторов
     Star->frStatus = &frStatus; // статус ФР
-    Star->PrintLineData = &PrintLineData;  // Печать номенквлатуры в чеке
+//    Star->PrintLineData = &PrintLineData;  // Печать номенквлатуры в чеке
     Star->ShadowLineData = &ShadowLineData; // Передача в чек фискальной номенклатуры
     Star->GiftItemData = &GiftItemData; // данные по подарочным картам
     Star->PresentItemData = &PresentItemData; // данные по подаркам
@@ -731,6 +732,7 @@ void __fastcall TMainWindow::FormCreate(TObject *Sender)
         Star->Psw = "\x1e\x0\x0\x0";
         break;
       }
+
 
     Star->Resume();
     log("Регистратор запущен");
@@ -903,6 +905,9 @@ catch (EOleException &eException)
    AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
    log(errormsg);
 }
+   
+   receipt = new Receipt();
+
 
 //Delivery dl = GetDeliveryDoc("035341409908", true);
 //DeliveryPrint(&dl);
@@ -3570,11 +3575,18 @@ void __fastcall TMainWindow::N16Click(TObject *Sender)
 {
    if(Grid->Cells[PG_ID_COL][1].IsEmpty()) return;
    SelectPayType();
-   if(!CreateBillBody(false)) return;
-   InsertToBill(Grid);
-   Star->GetBillNumber();
-   WriteRetail(PayType);
-   CalcTotal();
+   if(CreateBillBody(false))
+   {
+      InsertToBill(Grid);
+      Star->GetBillNumber();
+      WriteRetail(PayType);
+      CalcTotal();
+   }
+   else
+   {
+      PlaySound("oy.wav",0,SND_ASYNC);
+      Name->Caption = "Ошибка записи чека в базу данных!";
+   }
 }
 //---------------------------------------------------------------------------
 bool __fastcall TMainWindow::AddToFile(char* Input,char* Output)
@@ -3585,11 +3597,11 @@ char str[180];
 
 InF.open(Input);
 if(!InF)
-  {
+{
   PlaySound("oy.wav",0,SND_ASYNC);
   Name->Caption = "Ошибка открытия файла на чтение";
   return false;
-  }
+}
 OutF.open(Output,ios::app);
 if(!OutF)
   {
@@ -5737,21 +5749,13 @@ bool __fastcall TMainWindow::CreateBillBody(bool onReceipt)
  if(PayType == NAL_PAYMENT) Rnd = Round;
 
 // Предварительно очищаем вектора
-   PrintLineData.clear();   // то что печатается на чеке
+//   PrintLineData.clear();   // то что печатается на чеке
    ShadowLineData.clear();  // то что уходит в налоговую (с учетом скидок и надбавок по ФЗ-54)
 // цикл по всем позициям грида
       for(int i = 1; i < Grid->RowCount; i++)
       {
         // проверка на пустоту
-        if(
-           (Grid->Cells[1][i]=="") ||
-           (Grid->Cells[2][i]=="") ||
-           (Grid->Cells[3][i]=="") ||
-           (Grid->Cells[4][i]=="") ||
-           (Grid->Cells[5][i]=="") ||
-           (Grid->Cells[13][i]=="") ||
-           (Grid->Cells[12][i]=="")
-        )
+        if(Grid->Cells[1][i].IsEmpty())
         {
            Name->Caption = "Испорчен чек - нужно отсканировать заново";
            DownBool(Printing);
@@ -5761,8 +5765,8 @@ bool __fastcall TMainWindow::CreateBillBody(bool onReceipt)
 //        pr = MoneyAshyper(Grid->Cells[4][i]);
 //        qt = QuantityAshyper(Grid->Cells[5][i]);
 // Заполняем вектор реальных данных для налоговой
-         ShadowLineData.push_back(BillItemLine(Grid->Cells[PG_CODE_COL][i], Grid->Cells[PG_NAME_COL][i], Grid->Cells[PG_MEASURE_COL][i],
-           MoneyAshyper(Grid->Cells[PG_PRICE_COL][i]), QuantityAshyper(Grid->Cells[PG_QUANTITY_COL][i]), 0, StrToInt(Grid->Cells[PG_NDS_COL][i])));
+            ShadowLineData.push_back(BillItemLine(Grid->Cells[PG_CODE_COL][i], Grid->Cells[PG_NAME_COL][i], Grid->Cells[PG_MEASURE_COL][i],
+            MoneyAshyper(Grid->Cells[PG_PRICE_COL][i]), QuantityAshyper(Grid->Cells[PG_QUANTITY_COL][i]), 0, StrToInt(Grid->Cells[PG_NDS_COL][i])));
 //       }
       } // конец цикла по строкам грида
 // Создаем и заполняем структуру с характеристиками продажи
@@ -5830,6 +5834,7 @@ bool __fastcall TMainWindow::CreateBillBody(bool onReceipt)
          AnsiString Check = CheckList->Text;
          Check = ShieldingString(Check);
          strcpy(sPay.Check, Check.c_str());
+         delete CheckList;
       }
    }
 
@@ -5877,6 +5882,27 @@ bool __fastcall TMainWindow::CreateBillBody(bool onReceipt)
    }
 return res;
 }
+//--------------------------------------------------------------------
+std::vector<BillItemLine> __fastcall TMainWindow::GetProdItems()
+{
+   std::vector<BillItemLine> ret;
+   ret.clear();
+   if(Grid->Cells[PG_ID_COL][1].IsEmpty()) return ret;
+   for(int i = 1; i < Grid->RowCount; i++)
+   {
+      ret.push_back(BillItemLine(
+            Grid->Cells[PG_CODE_COL][i],
+            Grid->Cells[PG_NAME_COL][i],
+            Grid->Cells[PG_MEASURE_COL][i],
+            MoneyAshyper(Grid->Cells[PG_PRICE_COL][i]),
+            QuantityAshyper(Grid->Cells[PG_QUANTITY_COL][i]),
+            MoneyAshyper(Grid->Cells[PG_COST_COL][i]),
+            StrToInt(Grid->Cells[PG_NDS_COL][i])
+      ));
+   }
+return ret;
+}
+
 //------------------------------------------------------------
 // для отладки
 /*
@@ -7011,7 +7037,7 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
             BillPickup = true;
             break;
          case 1:  // хранение - передача доставщикам
-            Name->Caption = "Передаем товары на перевозчику.";
+            Name->Caption = "Передаем товары на доставку.";
             DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
             lbPickup->Caption = "На хранении";
             lbDelivery->Caption = "На доставку";
@@ -7508,11 +7534,8 @@ void __fastcall TMainWindow::DeliveryPrint(Delivery *Doc, bool Long)
       Star->Feed(1);
       Star->PrintF("Подпись:______________________", 1);
    }
-   else
-   {
-      Star->Feed(1);
-      Star->PrintF("Мест:___________________", 1);
-   }
+   Star->Feed(1);
+   Star->PrintF("Мест:___________________", 1);
    Star->Feed(1);
    Star->PrintF("Дата:______________________", 1);
    Star->CRLF();
@@ -7664,7 +7687,7 @@ AnsiString __fastcall TMainWindow::FormatBillNumber(AnsiString bn)
 void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<DeliveryItems> *Items)
 {
    if(Doc->BillNumber == "" || Doc->Items.size() == 0 || Items->size() == 0) return;
-   hyper sum = 0;
+//   hyper sum = 0;
    AnsiString str;
    Star->PrintF("  Разностный отчет", 2);
    str = "Документ №" + IntToStr(Doc->DocID);

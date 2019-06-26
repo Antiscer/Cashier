@@ -1,11 +1,10 @@
-#ifndef TObjectH
-#define TObjectH
+#ifndef StructH
+#define StructH
 
+#include <system.hpp>
 #include <vector>
 #include "paramsln.h"
 
-//std::vector<hyper> Sum;
-// структура для платежей
 struct ComboPay
 {
  AnsiString PayType;
@@ -40,8 +39,7 @@ struct ComboPay
  };
 };
 
-
-struct BillItemLine      // тип структуры для данных чека и данных печати чека
+struct BillItemLine      //
 {
  AnsiString ScanCode;
  AnsiString Name;
@@ -50,7 +48,7 @@ struct BillItemLine      // тип структуры для данных чека и данных печати чека
  unsigned hyper Quantity;
  unsigned hyper Sum;
  unsigned int NDS;
- // конструктор
+ // 
  BillItemLine(){};
  BillItemLine(AnsiString ScanCode, AnsiString Name, AnsiString Measure,
    hyper Price, hyper Quantity, hyper Sum, int NDS)
@@ -91,7 +89,7 @@ struct BillData
    int Status;
    std::vector<ComboPay> vPay;
 };
-struct GiftCardData  //тип данных для подарочных карт
+struct GiftCardData  //    
 {
   AnsiString Code;
   AnsiString Sum;
@@ -103,7 +101,7 @@ struct GiftCardData  //тип данных для подарочных карт
       this->Residue = Residue;
   }
 };
-struct PresentsData  // тип данных для подарков
+struct PresentsData  //    
 {
    AnsiString Code;
    AnsiString Name;
@@ -159,11 +157,11 @@ namespace My
     {
     public:
 //         __fastcall TCustomException(const String Msg, int AErrorCode)
-//            :Exception(Msg),FErrorCode(AErrorCode)  // Список инициализации
+//            :Exception(Msg),FErrorCode(AErrorCode)  //  
 //        {
 //        }
 
-//        __property int ErrorCode={read=FErrorCode}; // Примочка С++Builder(VCL) - "свойство"
+//        __property int ErrorCode={read=FErrorCode}; //  ++Builder(VCL) - ""
          TCustomException(const AnsiString Msg, int AErrorCode): FMessage(Msg), FErrorCode(AErrorCode)
          {
          }
@@ -262,3 +260,4 @@ struct Delivery
 
 
 #endif
+
