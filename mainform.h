@@ -523,6 +523,12 @@ public:		// User declarations
    hyper __fastcall TMainWindow::GetSumDeliveryDoc(std::vector<DeliveryItems> *items);
    std::vector<BillItemLine> __fastcall GetProdItems();
    Receipt *receipt;
+   bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc, int status);
+   bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc);
+   bool __fastcall TMainWindow::DownFoundStatus(Delivery *doc);
+   std::vector<DeliveryItems> __fastcall TMainWindow::DiffVector(std::vector<DeliveryItems> vec_1, std::vector<DeliveryItems> vec_2);
+   std::vector<DeliveryItems> __fastcall TMainWindow::FilterVector(std::vector<DeliveryItems> vec, bool flag);
+
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;

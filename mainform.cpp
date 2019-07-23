@@ -428,21 +428,19 @@ void __fastcall TMainWindow::CodeEnter(AnsiString Code)
     Delivery obj;
     if(Seek(Code))
     {
-        if(PresentEnter)
+        if(PresentEnter)      // ввод подарков
         {
             AddToTable(PresentGrid);   // добавляем в таблицу подарков
             HandInput = !ScannerEnter;
             NowSearching = false;
             return;
         }
-        else if(BillPickup)
+        else if(BillPickup)   // ввод товаров в документ доставки
         {
            if(MoveItemBetweenTable(IDNom->Caption, PickupGrid, DeliveryGrid))
            {
                PlaySound("nnumok.wav",0,SND_ASYNC);
                HandInput = !ScannerEnter;
-              // PickupSum->Text = MoneyAsString(GridSum(PickupGrid, PIG_PRICE_COL, PIG_QUANTITY_COL));
-              // DeliverySum->Text = MoneyAsString(GridSum(DeliveryGrid, DG_PRICE_COL, DG_QUANTITY_COL));
            }
            else
            {
@@ -6939,7 +6937,7 @@ void __fastcall TMainWindow::ReturnBCClick(TObject *Sender)
    return;  */
 }
 //---------------------------------------------------------------------------
-
+// поиск по ШК чека
 Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
 {
    Delivery ret;
@@ -6956,9 +6954,9 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
    Query->SQL->Add("SET @billnumber = (SELECT RTRIM(SCash) FROM SCash WHERE Id = SUBSTRING(@ean,1,3))");
    Query->SQL->Add("SET @billnumber = REPLICATE('0',6-len(@billnumber))+@billnumber+@t");
    Query->SQL->Add("SELECT pr.Scancode, rt.Billnumber, pr.Name, pr.Meas, rt.Price, rt.Quantity - ISNULL(di.Quantity,0) as Quantity, pr.NDS, sys.fn_varbintohexstr(rt.IDNom) as IDNom,");
-   Query->SQL->Add("CURRENT_TIMESTAMP as date, 0 as DocID, 1 as Type, 0 as Status, CURRENT_TIMESTAMP as StatusDate, rt.SCash, rt.Operator FROM retail rt");
+   Query->SQL->Add("CURRENT_TIMESTAMP as date, 0 as DocID, 1 as Type, 0 as Status, CURRENT_TIMESTAMP as StatusDate, rt.SCash, rt.Operator, found FROM retail rt");
    Query->SQL->Add("CROSS APPLY (SELECT TOP 1 * FROM price pr WHERE rt.IDnom = pr.IDnom ORDER BY ScanCode DESC) pr ");
-   Query->SQL->Add("LEFT JOIN (select idnom, SUM(quantity) as quantity, sum(price) as price from deliveryitems where DocID IN (select DocID from Delivery where BillNumber = @billnumber) group by idnom) di ON di.IDNom = rt.IDnom");
+   Query->SQL->Add("LEFT JOIN (select idnom, SUM(quantity) as quantity, sum(price) as price, found from deliveryitems where DocID IN (select DocID from Delivery where BillNumber = @billnumber) group by idnom, found) di ON di.IDNom = rt.IDnom");
    Query->SQL->Add("WHERE BillNumber=@billnumber AND flag > 100 AND rt.Sklad=0x" + Department);
    Query->SQL->Add("AND rt.Quantity - ISNULL(di.Quantity,0) > 0");
    try
@@ -6996,7 +6994,8 @@ Delivery __fastcall TMainWindow::SeekBill(AnsiString Code)
          Trim(Query->FieldByName("ScanCode")->AsString),
          QuantityAshyper(Query->FieldByName("Quantity")->AsString),
          MoneyAshyper(Query->FieldByName("Price")->AsString),
-         Trim(Query->FieldByName("Meas")->AsString)
+         Trim(Query->FieldByName("Meas")->AsString),
+         Query->FieldByName("found")->AsBoolean
          ));
        Query->Next();
    }
@@ -7038,7 +7037,9 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
             break;
          case 1:  // хранение - передача доставщикам
             Name->Caption = "Передаем товары на доставку.";
-            DeliveryPushGrid(&data->Items, PickupGrid, pickupCols);
+
+            DeliveryPushGrid(&FilterVector(data->Items, false), PickupGrid, pickupCols);
+            DeliveryPushGrid(&FilterVector(data->Items, true), DeliveryGrid, deliveryCols);
             lbPickup->Caption = "На хранении";
             lbDelivery->Caption = "На доставку";
             BillPickup = true;
@@ -7080,10 +7081,14 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
                   "Остались товары", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
                {
                   DeliveryDiffDocPrint(data, &res);
-                  deliveryDocument = Delivery();
-                  ShowDeliveryPanel(false, &deliveryDocument);
+                  Delivery tmpDoc = *data;
+                  tmpDoc.Items = DiffVector(data->Items, res);
+                  SetFoundStatus(&tmpDoc);
+//                  *data = Delivery();
+//                  ShowDeliveryPanel(false, data);
+                  ClearForm();
+                  Name->Caption = "Печать разностного документа.";
                }
-               return;
             }
             else
             {
@@ -7092,10 +7097,11 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
                data->CashBox = Star->Serial;
                data->Operator = CasName.SubString(1,15);
                SetDeliveryStatus(data);
-//               for(int i=0; i<3;i++) DeliveryPrint(data);
+               DownFoundStatus(data);
+               ClearForm();
+               Name->Caption = "Товары по документу №" + IntToStr(data->DocID) + " переданы перевозчику.";
             }
-            ClearForm();
-            Name->Caption = "Товары по документу №" + IntToStr(data->DocID) + " переданы перевозчику.";
+            *data = Delivery();
             break;
          case 2:  // исполенный документ
             DeliveryPrint(data, true);
@@ -7354,7 +7360,7 @@ void __fastcall TMainWindow::DeliveryDocClick(TObject *Sender)
 }
 
 //---------------------------------------------------------------------------
-
+// записываем данные по документу доставки
 AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
 {
    if(!GetConnStatus(false) || data->BillNumber == "") return "";
@@ -7391,7 +7397,8 @@ AnsiString __fastcall TMainWindow::PushDeliveryDoc(Delivery *data)
    CentralQuery->SQL->Add("RAISERROR (@ErrorMessage, @ErrorSeverity, @ErrorState);");
    CentralQuery->SQL->Add("END CATCH");
 //   CentralQuery->Parameters->ParseSQL(CentralQuery->SQL->Text, True);
-
+// используем параметрический запрос, чтобы не конвертировать время
+// не факт, что это удобно - просто попробовал
    CentralQuery->Parameters->ParamByName("billnumber")->Value = data->BillNumber;
    CentralQuery->Parameters->ParamByName("date")->Value = Now();
    CentralQuery->Parameters->ParamByName("deliverydate")->Value = 0;
@@ -7587,7 +7594,7 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
    Query->Active = false;
 
    Query->SQL->Clear();
-   Query->SQL->Add(" SELECT DocID, sys.fn_varbintohexstr(IDNom) as IDNom, Quantity, Price, Name, ItemScanCode, Meas FROM DeliveryItems di");
+   Query->SQL->Add(" SELECT DocID, sys.fn_varbintohexstr(IDNom) as IDNom, Quantity, Price, Name, ItemScanCode, Meas, found FROM DeliveryItems di");
    Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode, Meas FROM price WHERE price.IDnom = di.IDNom ORDER BY ScanCode DESC) pr");
    Query->SQL->Add("WHERE di.DocID = '" + AnsiString(ret.DocID) + "'");
    try
@@ -7615,7 +7622,8 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
          Trim(Query->FieldByName("ItemScanCode")->AsString),
          QuantityAshyper(Query->FieldByName("Quantity")->AsString),
          MoneyAshyper(Query->FieldByName("Price")->AsString),
-         Trim(Query->FieldByName("Meas")->AsString)
+         Trim(Query->FieldByName("Meas")->AsString),
+         Query->FieldByName("found")->AsBoolean
          ));
        Query->Next();
     }
@@ -7672,7 +7680,8 @@ std::vector<DeliveryItems> __fastcall TMainWindow::DeliveryPopGrid(TStringGrid *
          Grid->Cells[cols["code"]][i],
          QuantityAshyper(Grid->Cells[cols["qnty"]][i]),
          MoneyAshyper(Grid->Cells[cols["price"]][i]),
-         Grid->Cells[cols["meas"]][i]
+         Grid->Cells[cols["meas"]][i],
+         false
          ));
    }
    return ret;
@@ -7815,11 +7824,11 @@ hyper __fastcall TMainWindow::GetSumDeliveryDoc(std::vector<DeliveryItems> *item
    }
    return sum;
 }
-
-
+//----------------------------------------------------------------------------
+// реакция на событие обновления столбца
 void __fastcall TMainWindow::PickupGridDrawCell(TObject *Sender, int ACol,
       int ARow, TRect &Rect, TGridDrawState State)
-{
+{  // обновляем общую сумму
    if(ACol == PIG_QUANTITY_COL || ACol == PIG_PRICE_COL)
    {
       PickupSum->Text = MoneyAsString(GridSum(PickupGrid, PIG_PRICE_COL, PIG_QUANTITY_COL));
@@ -7829,11 +7838,85 @@ void __fastcall TMainWindow::PickupGridDrawCell(TObject *Sender, int ACol,
 
 void __fastcall TMainWindow::DeliveryGridDrawCell(TObject *Sender,
       int ACol, int ARow, TRect &Rect, TGridDrawState State)
-{
+{  // обновляем общую сумму
    if(ACol == PIG_QUANTITY_COL || ACol == PIG_PRICE_COL)
    {
       DeliverySum->Text = MoneyAsString(GridSum(DeliveryGrid, DG_PRICE_COL, DG_QUANTITY_COL));
    }
 }
+//--------------------------------------------------------------------------
+
+bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc, int status)
+{
+   if(!GetConnStatus(false)) return false;
+   if(doc->Items.size() == 0) return false;
+   int id = doc->DocID;
+
+   CentralQuery->SQL->Clear();
+   for(std::vector<DeliveryItems>::iterator it = doc->Items.begin(); it != doc->Items.end(); ++it)
+   {
+
+      CentralQuery->SQL->Add("UPDATE DeliveryItems SET found = " + IntToStr(status));
+      CentralQuery->SQL->Add("WHERE DocId = " + IntToStr(id));
+      CentralQuery->SQL->Add("AND IDNom = " + it->IDNom);
+      CentralQuery->SQL->Add("AND Price=" + MoneyAsString(it->Price));
+   }
+   try
+   {
+      CentralQuery->ExecSQL();
+   }
+   catch(EOleException &eException)
+   {
+      Name->Caption = "Не удалось записать данные SQL! Повторите операцию.";
+      PlaySound("oy.wav",0,SND_ASYNC);
+      AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
+      log(errormsg);
+      return false;
+   }
+   return true;
+}
+//-------------------------------------------------------------------------
+bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc)
+{
+   return SetFoundStatus(doc, 1);
+}
+//--------------------------------------------------------------------------
+bool __fastcall TMainWindow::DownFoundStatus(Delivery *doc)
+{
+   return SetFoundStatus(doc, 0);
+}
 //---------------------------------------------------------------------------
 
+std::vector<DeliveryItems> __fastcall TMainWindow::DiffVector(std::vector<DeliveryItems> vec_1, std::vector<DeliveryItems> vec_2)
+{
+   std::vector<DeliveryItems> items;
+   if(vec_1.size() == 0) return items;
+   if(vec_2.size() == 0) return vec_1;
+   for(std::vector<DeliveryItems>::iterator it_min = vec_1.begin(); it_min != vec_1.end(); ++it_min)
+   {
+      bool neg = true;
+      for(std::vector<DeliveryItems>::iterator it_sub = vec_2.begin(); it_sub != vec_2.end(); ++it_sub)
+      {
+         bool a = (it_min->IDNom != it_sub->IDNom);
+         bool b = (it_min->Price != it_sub->Price);
+         bool c = a && b;
+         if(it_min->IDNom == it_sub->IDNom && it_min->Price == it_sub->Price)
+         {
+            neg = false;
+            break;
+         }
+      }
+      if(neg) items.push_back(*it_min);
+   }
+return items;
+}
+//-----------------------------------------------
+std::vector<DeliveryItems> __fastcall TMainWindow::FilterVector(std::vector<DeliveryItems> vec, bool flag)
+{
+   std::vector<DeliveryItems> res;
+   for(std::vector<DeliveryItems>::iterator it = vec.begin(); it != vec.end(); ++it)
+   {
+      if(it->Found == flag) res.push_back(*it);
+   }
+   return res;
+}

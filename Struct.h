@@ -187,12 +187,13 @@ struct DeliveryItems
    unsigned hyper Quantity;
    unsigned hyper Price;
    AnsiString Measure;
+   bool Found;
    DeliveryItems()
    {
       this->Quantity = hyper();
       this->Price = hyper();
    }
-   DeliveryItems(AnsiString idnom, AnsiString name, AnsiString sc, unsigned hyper qnty, unsigned hyper price, AnsiString meas)
+   DeliveryItems(AnsiString idnom, AnsiString name, AnsiString sc, unsigned hyper qnty, unsigned hyper price, AnsiString meas, bool found)
    {
       this->IDNom = idnom;
       this->Name = name;
@@ -200,6 +201,7 @@ struct DeliveryItems
       this->Quantity = qnty;
       this->Price = price;
       this->Measure = meas;
+      this->Found = found;
    }
 };
 
