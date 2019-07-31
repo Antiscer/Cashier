@@ -1,21 +1,26 @@
 [Closed Files]
-File_0=SourceModule,'C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\stdmutex.h',0,1,157,1,171,0,0
-File_1=SourceModule,'C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\function.h',0,1,153,1,169,0,0
+File_0=SourceModule,'C:\Work\Cashier\smartcardreader.cpp',0,1,16,24,32,0,0
+File_1=SourceModule,'C:\Work\Cashier\CopyRes.h',0,1,1,1,1,0,0
+File_2=SourceModule,'C:\TEMP\PROJECT1\struct.h',0,1,1,15,8,0,0
+File_3=SourceModule,'C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\stdmutex.h',0,1,156,1,171,0,0
+File_4=SourceModule,'C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\stdio.h',0,1,347,22,362,0,0
+File_5=SourceModule,'C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\function.h',0,1,153,1,169,0,0
 
 [Modules]
 Module0=C:\Work\Cashier\mainform.cpp
-Module1=C:\Work\Cashier\clock.cpp
-Module2=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h
+Module1=C:\Work\Cashier\Receipt.cpp
+Module2=C:\Work\Cashier\mstar.cpp
 Module3=C:\Work\Cashier\Struct.h
-Module4=C:\Work\Cashier\scanner.cpp
-Module5=C:\Work\Cashier\mstar.cpp
-Module6=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\map.h
-Module7=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\tree.h
-Module8=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\memory.stl
-Module9=C:\Work\Cashier\fSverka.cpp
-Module10=C:\Work\Cashier\cash.cpp
-Module11=C:\Work\Cashier\frReturn.cpp
-Count=12
+Module4=C:\Work\Cashier\clock.cpp
+Module5=C:\Work\Cashier\scanner.cpp
+Module6=C:\Work\Cashier\cash.cpp
+Module7=C:\Work\Cashier\frReturn.cpp
+Module8=C:\Work\Cashier\fSverka.cpp
+Module9=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h
+Module10=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\map.h
+Module11=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\tree.h
+Module12=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\memory.stl
+Count=13
 EditWindowCount=2
 
 [C:\Work\Cashier\mainform.cpp]
@@ -23,12 +28,12 @@ ModuleType=SourceModule
 FormState=3
 FormOnTop=0
 
-[C:\Work\Cashier\clock.cpp]
+[C:\Work\Cashier\Receipt.cpp]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h]
+[C:\Work\Cashier\mstar.cpp]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
@@ -38,12 +43,32 @@ ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
+[C:\Work\Cashier\clock.cpp]
+ModuleType=SourceModule
+FormState=0
+FormOnTop=0
+
 [C:\Work\Cashier\scanner.cpp]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[C:\Work\Cashier\mstar.cpp]
+[C:\Work\Cashier\cash.cpp]
+ModuleType=SourceModule
+FormState=0
+FormOnTop=0
+
+[C:\Work\Cashier\frReturn.cpp]
+ModuleType=SourceModule
+FormState=0
+FormOnTop=0
+
+[C:\Work\Cashier\fSverka.cpp]
+ModuleType=SourceModule
+FormState=0
+FormOnTop=0
+
+[C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h]
 ModuleType=SourceModule
 FormState=0
 FormOnTop=0
@@ -63,21 +88,6 @@ ModuleType=SourceModule
 FormState=0
 FormOnTop=0
 
-[C:\Work\Cashier\fSverka.cpp]
-ModuleType=SourceModule
-FormState=0
-FormOnTop=0
-
-[C:\Work\Cashier\cash.cpp]
-ModuleType=SourceModule
-FormState=0
-FormOnTop=0
-
-[C:\Work\Cashier\frReturn.cpp]
-ModuleType=SourceModule
-FormState=0
-FormOnTop=0
-
 [C:\Windows\system32\ProjectGroup1.bpg]
 FormState=0
 FormOnTop=0
@@ -86,27 +96,95 @@ FormOnTop=0
 FormState=0
 FormOnTop=0
 
-[EditWindow0]
-ViewCount=10
+[EditWindow1]
+ViewCount=5
 CurrentView=0
 View0=0
 View1=1
 View2=2
 View3=3
 View4=4
-View5=5
-View6=6
-View7=7
-View8=8
-View9=9
-ClassHierarchy=ClassHierarchy@EditWindow0
-CodeExplorer=CodeExplorer@EditWindow0
+CodeExplorer=CodeExplorer@EditWindow1
+MessageView=MessageView@EditWindow1
+ClassHierarchy=ClassHierarchy@EditWindow1
+Create=1
+Visible=1
+State=1
+Left=408
+Top=134
+Width=1144
+Height=687
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1128
+ClientHeight=649
+LeftPanelSize=0
+LeftPanelClients=CodeExplorer@EditWindow1
+LeftPanelData=00000400010000000C000000436F64654578706C6F7265720000000000000000000000000000000000FFFFFFFF
+RightPanelSize=241
+RightPanelClients=WatchWindow
+RightPanelData=000004000000000000000000000000000000000000000000000100000000000000000B000000576174636857696E646F77FFFFFFFF
+BottomPanelSize=52
+BottomPanelClients=MessageView@EditWindow1
+BottomPanelData=000004000000000000000000000000000000000000000000000100000000000000000B0000004D65737361676556696577FFFFFFFF
+
+[View0]
+Module=C:\Work\Cashier\mainform.cpp
+CursorX=80
+CursorY=2830
+TopLine=2811
+LeftCol=1
+
+[View1]
+Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\map.h
+CursorX=1
+CursorY=198
+TopLine=182
+LeftCol=1
+
+[View2]
+Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\tree.h
+CursorX=1
+CursorY=703
+TopLine=687
+LeftCol=1
+
+[View3]
+Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\memory.stl
+CursorX=1
+CursorY=108
+TopLine=82
+LeftCol=1
+
+[View4]
+Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h
+CursorX=1
+CursorY=68
+TopLine=53
+LeftCol=1
+
+[EditWindow0]
+ViewCount=13
+CurrentView=0
+View0=5
+View1=6
+View2=7
+View3=8
+View4=9
+View5=10
+View6=11
+View7=12
+View8=13
+View9=14
+View10=15
+View11=16
+View12=17
 MessageView=MessageView@EditWindow0
 Create=1
 Visible=1
 State=0
-Left=508
-Top=123
+Left=372
+Top=148
 Width=1060
 Height=675
 MaxLeft=-8
@@ -114,181 +192,115 @@ MaxTop=106
 ClientWidth=1044
 ClientHeight=637
 LeftPanelSize=0
-LeftPanelClients=CodeExplorer@EditWindow0
-LeftPanelData=00000400010000000C000000436F64654578706C6F7265720000000000000000000000000000000000FFFFFFFF
 RightPanelSize=0
 BottomPanelSize=52
 BottomPanelClients=MessageView@EditWindow0
 BottomPanelData=000004000000000000000000000000000000000000000000000100000000000000000B0000004D65737361676556696577FFFFFFFF
 
-[View0]
+[View5]
 Module=C:\Work\Cashier\mainform.cpp
-CursorX=17
-CursorY=7325
-TopLine=7322
+CursorX=22
+CursorY=5769
+TopLine=5763
 LeftCol=1
 
-[View1]
+[View6]
 Module=C:\Work\Cashier\scanner.cpp
 CursorX=1
 CursorY=37
 TopLine=25
 LeftCol=1
 
-[View2]
+[View7]
 Module=C:\Work\Cashier\mstar.cpp
-CursorX=5
-CursorY=52
-TopLine=36
+CursorX=1
+CursorY=1
+TopLine=1
 LeftCol=1
 
-[View3]
+[View8]
+Module=C:\Work\Cashier\mstar.h
+CursorX=10
+CursorY=73
+TopLine=1
+LeftCol=1
+
+[View9]
 Module=C:\Work\Cashier\cash.cpp
 CursorX=1
 CursorY=1
 TopLine=1
 LeftCol=1
 
-[View4]
+[View10]
 Module=C:\Work\Cashier\clock.cpp
 CursorX=1
 CursorY=45
 TopLine=33
 LeftCol=1
 
-[View5]
+[View11]
 Module=C:\Work\Cashier\clock.h
 CursorX=22
 CursorY=26
 TopLine=1
 LeftCol=1
 
-[View6]
+[View12]
 Module=C:\Work\Cashier\frReturn.cpp
 CursorX=29
 CursorY=144
 TopLine=128
 LeftCol=1
 
-[View7]
+[View13]
 Module=C:\Work\Cashier\fSverka.cpp
 CursorX=5
 CursorY=84
 TopLine=72
 LeftCol=1
 
-[View8]
-Module=C:\Work\Cashier\mainform.h
-CursorX=29
-CursorY=108
-TopLine=94
-LeftCol=1
-
-[View9]
-Module=C:\Work\Cashier\Struct.h
-CursorX=43
-CursorY=245
-TopLine=225
-LeftCol=1
-
-[EditWindow1]
-ViewCount=5
-CurrentView=0
-View0=10
-View1=11
-View2=12
-View3=13
-View4=14
-CodeExplorer=CodeExplorer@EditWindow1
-MessageView=MessageView@EditWindow1
-ClassHierarchy=ClassHierarchy@EditWindow1
-Create=1
-Visible=1
-State=0
-Left=304
-Top=158
-Width=1202
-Height=641
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=1186
-ClientHeight=603
-LeftPanelSize=0
-LeftPanelClients=CodeExplorer@EditWindow1
-LeftPanelData=00000400010000000C000000436F64654578706C6F7265720000000000000000000000000000000000FFFFFFFF
-RightPanelSize=445
-RightPanelClients=WatchWindow
-RightPanelData=000004000000000000000000000000000000000000000000000100000000000000000B000000576174636857696E646F77FFFFFFFF
-BottomPanelSize=52
-BottomPanelClients=MessageView@EditWindow1
-BottomPanelData=000004000000000000000000000000000000000000000000000100000000000000000B0000004D65737361676556696577FFFFFFFF
-
-[View10]
-Module=C:\Work\Cashier\mainform.cpp
-CursorX=1
-CursorY=4308
-TopLine=4302
-LeftCol=1
-
-[View11]
-Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\map.h
-CursorX=1
-CursorY=198
-TopLine=182
-LeftCol=1
-
-[View12]
-Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\rw\tree.h
-CursorX=1
-CursorY=703
-TopLine=687
-LeftCol=1
-
-[View13]
-Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\memory.stl
-CursorX=1
-CursorY=108
-TopLine=82
-LeftCol=1
-
 [View14]
-Module=C:\PROGRAM FILES (X86)\BORLAND\CBUILDER5\INCLUDE\VCL\dstring.h
-CursorX=1
-CursorY=257
-TopLine=240
+Module=C:\Work\Cashier\mainform.h
+CursorX=14
+CursorY=525
+TopLine=1
+LeftCol=1
+
+[View15]
+Module=C:\Work\Cashier\Struct.h
+CursorX=18
+CursorY=50
+TopLine=37
+LeftCol=1
+
+[View16]
+Module=C:\Work\Cashier\Receipt.cpp
+CursorX=25
+CursorY=31
+TopLine=13
+LeftCol=1
+
+[View17]
+Module=C:\Work\Cashier\Receipt.h
+CursorX=47
+CursorY=43
+TopLine=28
 LeftCol=1
 
 [Watches]
-Count=20
-Watch0='PriceQuery->SQL->Text',256,0,18,1,0
-Watch1='ToGrid->Cells[1][1]',256,0,18,1,0
-Watch2='CmdSo.buf[16]',256,0,18,1,0
-Watch3='CmdSo.buf',256,0,18,1,0
-Watch4='CmdSo.stx()',256,0,18,1,0
-Watch5='CmdSo',256,0,18,1,0
-Watch6='CmdSo.buf[11]',256,0,18,1,0
-Watch7='buf',256,0,18,1,0
-Watch8='CmdSo.buf[0]',256,0,18,1,0
-Watch9='buf[11]',256,0,18,1,0
-Watch10='PriceQuery->SQL->Text',256,0,18,1,0
-Watch11='*data',256,0,18,1,0
-Watch12='it->Name',256,0,18,1,0
-Watch13='it->ItemScanCode',256,0,18,1,0
-Watch14='DeliveryGrid->Cells[1][1]',256,0,18,1,0
-Watch15='PickupGrid->Cells[1][1]',256,0,18,1,0
-Watch16='Query->SQL->Text',256,0,18,1,0
-Watch17='deliveryDocument',256,0,18,1,0
-Watch18='DeliveryGrid->Cells[1][2]',256,0,18,1,0
-Watch19='FromGrid->Cells[3][rowFrom]',256,0,18,1,0
+Count=0
 
 [Breakpoints]
-Count=6
+Count=8
 Breakpoint0='C:\Temp\Project1\FR.cpp',20,'',0,1,'',1,0,0,'',1,'','',''
 Breakpoint1='C:\Temp\Project1\FR.cpp',543,'',0,1,'',1,0,0,'',1,'','',''
 Breakpoint2='C:\Work\Cashier\ComplexPay.cpp',220,'',0,1,'',1,0,0,'',1,'','',''
 Breakpoint3='C:\Work\Cashier\ComplexPay.cpp',212,'',0,1,'',1,0,0,'',1,'','',''
 Breakpoint4='C:\Work\Cashier 7.4\mstar.cpp',4388,'',0,1,'',1,0,0,'',1,'','',''
-Breakpoint5='C:\Work\Cashier\mainform.cpp',1445,'',0,1,'',1,0,0,'',1,'','',''
+Breakpoint5='C:\Work\Cashier\mainform.cpp',5825,'',0,1,'',1,0,0,'',1,'','',''
+Breakpoint6='C:\Work\Cashier\mainform.cpp',5003,'',0,1,'',1,0,0,'',1,'','',''
+Breakpoint7='C:\Work\Cashier\mainform.cpp',3577,'',0,1,'',1,0,0,'',1,'','',''
 
 [AddressBreakpoints]
 Count=0
@@ -299,21 +311,21 @@ Visible=1
 State=2
 Left=0
 Top=0
-Width=1024
+Width=1600
 Height=122
 MaxLeft=-8
 MaxTop=-8
-MaxWidth=1616
+MaxWidth=1612
 MaxHeight=122
-ClientWidth=1600
+ClientWidth=1596
 ClientHeight=84
 
 [ProjectManager]
 Create=1
-Visible=0
+Visible=1
 State=0
-Left=708
-Top=144
+Left=861
+Top=221
 Width=570
 Height=511
 MaxLeft=-1
@@ -362,14 +374,14 @@ Visible=1
 State=0
 Left=0
 Top=12
-Width=445
-Height=518
+Width=241
+Height=564
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=445
-ClientHeight=518
+ClientWidth=241
+ClientHeight=564
 TBDockHeight=52
-LRDockWidth=445
+LRDockWidth=241
 Dockable=1
 
 [CallStackWindow]
@@ -418,7 +430,7 @@ LRDockWidth=190
 Dockable=1
 SplitPos=119
 ArrangeBy=Name
-SelectedItem=Name
+SelectedItem=Caption
 ExpandedItems=Attributes,BorderIcons,Constraints,ExecuteOptions,Font.Style,Value
 HiddenCategories=Legacy
 ShowStatusBar=1
@@ -460,24 +472,21 @@ TBDockHeight=190
 LRDockWidth=448
 Dockable=1
 
-[ClassHierarchy@EditWindow0]
+[MessageView@EditWindow0]
 Create=1
-Visible=0
+Visible=1
 State=0
-Left=218
-Top=113
-Width=403
-Height=284
+Left=12
+Top=0
+Width=1032
+Height=52
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=387
-ClientHeight=250
-TBDockHeight=284
-LRDockWidth=403
+ClientWidth=1032
+ClientHeight=52
+TBDockHeight=52
+LRDockWidth=443
 Dockable=1
-TreeWidth=121
-Col1Width=120
-Col2Width=120
 
 [ClassHierarchy@EditWindow1]
 Create=1
@@ -521,44 +530,11 @@ Visible=1
 State=0
 Left=12
 Top=0
-Width=1174
+Width=1116
 Height=52
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1174
-ClientHeight=52
-TBDockHeight=52
-LRDockWidth=443
-Dockable=1
-
-[CodeExplorer@EditWindow0]
-Create=1
-Visible=0
-State=0
-Left=0
-Top=12
-Width=170
-Height=525
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=170
-ClientHeight=525
-TBDockHeight=388
-LRDockWidth=170
-Dockable=1
-ClassViewDisplayMode=0
-
-[MessageView@EditWindow0]
-Create=1
-Visible=1
-State=0
-Left=12
-Top=0
-Width=1032
-Height=52
-MaxLeft=-1
-MaxTop=-1
-ClientWidth=1032
+ClientWidth=1116
 ClientHeight=52
 TBDockHeight=52
 LRDockWidth=443

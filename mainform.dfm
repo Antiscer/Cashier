@@ -4,7 +4,7 @@ object MainWindow: TMainWindow
   BiDiMode = bdLeftToRight
   BorderIcons = []
   BorderStyle = bsSingle
-  Caption = 'Колорлон.Кассир.7.7 Онлайн'
+  Caption = 'Колорлон.Кассир.7.7.1 Онлайн'
   ClientHeight = 657
   ClientWidth = 1346
   Color = clActiveBorder

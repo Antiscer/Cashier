@@ -28,7 +28,7 @@ __fastcall TScanner::TScanner(bool CreateSuspended)
     Port = 0;
     Baud = 9600;
     hComm = NULL;
-    Priority = tpIdle;
+    Priority = tpLowest;
 }
 //---------------------------------------------------------------------------
 void __fastcall TScanner::Transmit()

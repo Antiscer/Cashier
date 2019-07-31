@@ -7013,12 +7013,14 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
       {
          panelDelivery->Visible = true;
          BillPickup = true;
+         Grid->Enabled = false;
          return;
       }
       else
       {
          panelDelivery->Visible = false;
          BillPickup = false;
+         Grid->Enabled = true;
          return;
       }
    }
@@ -7026,6 +7028,8 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
    {
       Grid->Enabled = false;
       PickupGrid->Enabled = true;
+      ClearGrid(PickupGrid);
+      ClearGrid(DeliveryGrid);
       switch (data->Status)
       {
          case 0: // это чек - передача на хранение
@@ -7037,7 +7041,6 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
             break;
          case 1:  // хранение - передача доставщикам
             Name->Caption = "Передаем товары на доставку.";
-
             DeliveryPushGrid(&FilterVector(data->Items, false), PickupGrid, pickupCols);
             DeliveryPushGrid(&FilterVector(data->Items, true), DeliveryGrid, deliveryCols);
             lbPickup->Caption = "На хранении";
@@ -7081,9 +7084,9 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
                   "Остались товары", MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON1) == IDYES)
                {
                   DeliveryDiffDocPrint(data, &res);
-                  Delivery tmpDoc = *data;
-                  tmpDoc.Items = DiffVector(data->Items, res);
-                  SetFoundStatus(&tmpDoc);
+                  Delivery lostDoc = *data;
+                  lostDoc.Items = res;
+                  PushDeliveryLostItems(lostDoc);
 //                  *data = Delivery();
 //                  ShowDeliveryPanel(false, data);
                   ClearForm();
@@ -7097,9 +7100,11 @@ void __fastcall TMainWindow::ShowDeliveryPanel(bool enable, Delivery *data)
                data->CashBox = Star->Serial;
                data->Operator = CasName.SubString(1,15);
                SetDeliveryStatus(data);
-               DownFoundStatus(data);
+//               DownFoundStatus(data);
                ClearForm();
+               ClearDeliveryLostItems(data->DocID);
                Name->Caption = "Товары по документу №" + IntToStr(data->DocID) + " переданы перевозчику.";
+               PlaySound("tada.wav",0,SND_ASYNC);
             }
             *data = Delivery();
             break;
@@ -7592,11 +7597,20 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
          );
 
    Query->Active = false;
-
+   // помечаем товары 1 как найденные и 0 как потерянные
    Query->SQL->Clear();
-   Query->SQL->Add(" SELECT DocID, sys.fn_varbintohexstr(IDNom) as IDNom, Quantity, Price, Name, ItemScanCode, Meas, found FROM DeliveryItems di");
+   Query->SQL->Add("DECLARE @lostCount int = (SELECT COUNT(*) FROM DeliveryLost)");
+   Query->SQL->Add("SELECT dl.DocID, sys.fn_varbintohexstr(dl.IDNom) AS IDNom, Quantity, price, pr.Name, pr.ItemScanCode, pr.Meas, 0 AS found FROM DeliveryLost dl");
+   Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode, Meas FROM price WHERE price.IDnom = dl.IDNom ORDER BY ScanCode DESC) pr");
+   Query->SQL->Add("INNER JOIN Delivery d ON d.DocID = dl.DocID");
+   Query->SQL->Add("WHERE d.Scancode='" + ScanCode + "'");
+   Query->SQL->Add("UNION ALL");
+   Query->SQL->Add("SELECT di.DocID, sys.fn_varbintohexstr(di.IDNom) AS IDNom, di.Quantity - ISNULL(dl.Quantity, 0) as Quantity, di.Price, pr.Name, pr.ItemScanCode, pr.Meas,  ");
+   Query->SQL->Add("(CASE WHEN @lostCount > 0 THEN 1 ELSE 0 END) AS found FROM DeliveryItems di");
    Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode, Meas FROM price WHERE price.IDnom = di.IDNom ORDER BY ScanCode DESC) pr");
-   Query->SQL->Add("WHERE di.DocID = '" + AnsiString(ret.DocID) + "'");
+   Query->SQL->Add("INNER JOIN Delivery d ON d.DocID = di.DocID");
+   Query->SQL->Add("LEFT JOIN DeliveryLost dl ON dl.DocID = dl.DocID AND dl.IDNom = di.IDNom AND dl.Price = di.Price");
+   Query->SQL->Add("WHERE di.Quantity - ISNULL(dl.Quantity, 0) != 0 AND d.Scancode='" + ScanCode + "'");
    try
    {
      Query->Active = true;
@@ -7623,7 +7637,7 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
          QuantityAshyper(Query->FieldByName("Quantity")->AsString),
          MoneyAshyper(Query->FieldByName("Price")->AsString),
          Trim(Query->FieldByName("Meas")->AsString),
-         Query->FieldByName("found")->AsBoolean
+         (Query->FieldByName("found")->AsInteger == 1)
          ));
        Query->Next();
     }
@@ -7717,7 +7731,7 @@ void __fastcall TMainWindow::DeliveryDiffDocPrint(Delivery *Doc, std::vector<Del
    Star->PrintF("Не найдены товары:", 4);
    DeliveryItemsPrint(Items);
    str = "На сумму: ";
-   str += MoneyAsString(GetSumDeliveryDoc(&Doc->Items));
+   str += MoneyAsString(GetSumDeliveryDoc(Items));
    str = AnsiString::StringOfChar(' ', 21 - str.Length()) + str;
    Star->PrintF(str, 4);
    Star->Feed(2);
@@ -7919,4 +7933,48 @@ std::vector<DeliveryItems> __fastcall TMainWindow::FilterVector(std::vector<Deli
       if(it->Found == flag) res.push_back(*it);
    }
    return res;
+}
+//-----------------------------------------------------------------------
+void __fastcall TMainWindow::PushDeliveryLostItems(Delivery lostDoc)
+{
+   if(lostDoc.Items.size() == 0) return;
+   TADOQuery *Query;
+   Query = CentralQuery;
+   Query->SQL->Clear();
+   Query->SQL->Add("DELETE FROM DeliveryLost WHERE DocID=" + IntToStr(lostDoc.DocID));
+   Query->SQL->Add("INSERT INTO DeliveryLost (DocID, IDNom, Quantity, Price) VALUES");
+   bool comma = false;
+   for(std::vector<DeliveryItems>::iterator it = lostDoc.Items.begin(); it != lostDoc.Items.end(); ++it)
+   {
+      if(comma) Query->SQL->Add(",");
+      Query->SQL->Add("(" + IntToStr(lostDoc.DocID) + "," + it->IDNom + "," + QuantityAsString(it->Quantity) + "," + MoneyAsString(it->Price) + ")");
+      comma = true;
+   }
+   try
+   {
+      Query->ExecSQL();
+   }
+   catch(EOleException &e)
+   {
+      AnsiString errormsg = "EOleException: Source=\""+e.Source+"\" ErrorCode="+IntToStr(e.ErrorCode)+" Message=\""+e.Message+"\"" + Query->SQL->Text;
+      log(errormsg);
+   }
+}
+//-------------------------------------------------------------------------
+void __fastcall TMainWindow::ClearDeliveryLostItems(int docID)
+{
+   if(docID <= 0) return;
+   TADOQuery *Query;
+   Query = CentralQuery;
+   Query->SQL->Clear();
+   Query->SQL->Text = "DELETE FROM DeliveryLost WHERE DocID=" + IntToStr(docID);
+   try
+   {
+      Query->ExecSQL();
+   }
+   catch(EOleException &e)
+   {
+      AnsiString errormsg = "EOleException: Source=\""+e.Source+"\" ErrorCode="+IntToStr(e.ErrorCode)+" Message=\""+e.Message+"\"" + Query->SQL->Text;
+      log(errormsg);
+   }
 }

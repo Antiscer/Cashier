@@ -528,7 +528,8 @@ public:		// User declarations
    bool __fastcall TMainWindow::DownFoundStatus(Delivery *doc);
    std::vector<DeliveryItems> __fastcall TMainWindow::DiffVector(std::vector<DeliveryItems> vec_1, std::vector<DeliveryItems> vec_2);
    std::vector<DeliveryItems> __fastcall TMainWindow::FilterVector(std::vector<DeliveryItems> vec, bool flag);
-
+   void __fastcall TMainWindow::PushDeliveryLostItems(Delivery lostDoc);
+   void __fastcall TMainWindow::ClearDeliveryLostItems(int docID);
 };
 //---------------------------------------------------------------------------
 extern PACKAGE TMainWindow *MainWindow;
