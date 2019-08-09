@@ -323,7 +323,7 @@ private:	// User declarations
     void __fastcall ArrangeTable();
     void __fastcall CalcTotal();
     void __fastcall KeyPressDelete(char Key);
-    bool __fastcall Seek(AnsiString Code);
+    bool __fastcall Seek(AnsiString, bool);
 
     bool __fastcall GiftCardIsInCheck(AnsiString Code);
     bool __fastcall SeekGiftCard(AnsiString Code);

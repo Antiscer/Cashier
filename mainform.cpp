@@ -302,7 +302,7 @@ void __fastcall TMainWindow::CalcTotal()
 }
 //---------------------------------------------------------------------------
 // Поиск товара по считанному ШК в таблице Price
-bool __fastcall TMainWindow::Seek(AnsiString Code)
+bool __fastcall TMainWindow::Seek(AnsiString Code, bool NullControl)
 {
 bool ret;
 bool add5 = false;
@@ -381,7 +381,7 @@ if(ret)
 
 //Обработка 0 цены
 if(ret)
-  if( MoneyAshyper(LPrice) == 0)
+  if( MoneyAshyper(LPrice) == 0 && NullControl)
   {
       PlaySound("warning.wav",0,SND_ASYNC);
       MessageBox (GetActiveWindow(),"ВНИМАНИЕ!",
@@ -426,7 +426,7 @@ return ret;
 void __fastcall TMainWindow::CodeEnter(AnsiString Code)
 {
     Delivery obj;
-    if(Seek(Code))
+    if(Seek(Code, !PresentEnter))
     {
         if(PresentEnter)      // ввод подарков
         {
@@ -1495,7 +1495,7 @@ void __fastcall TMainWindow::KeyPressDelete(char Key)
 
             if(Key == 13 && str.Length() > 0)
             {
-                if(Seek(Nnum->Text))
+                if(Seek(Nnum->Text, true))
                 {
                      PlaySound("delnnum.wav",0,SND_ASYNC);
                     if(CardType == MANAGER_CARD) DeleteMode = 1;
