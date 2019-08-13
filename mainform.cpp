@@ -7599,7 +7599,7 @@ Delivery __fastcall TMainWindow::GetDeliveryDoc(AnsiString ScanCode)
    Query->Active = false;
    // помечаем товары 1 как найденные и 0 как потерянные
    Query->SQL->Clear();
-   Query->SQL->Add("DECLARE @lostCount int = (SELECT COUNT(*) FROM DeliveryLost)");
+   Query->SQL->Add("DECLARE @lostCount int = (SELECT COUNT(*) FROM DeliveryLost WHERE DocID = (SELECT TOP 1 DocID From Delivery WHERE Scancode='" + ScanCode + "'))");
    Query->SQL->Add("SELECT dl.DocID, sys.fn_varbintohexstr(dl.IDNom) AS IDNom, Quantity, price, pr.Name, pr.ItemScanCode, pr.Meas, 0 AS found FROM DeliveryLost dl");
    Query->SQL->Add("CROSS APPLY (SELECT TOP 1 Name, ScanCode as ItemScanCode, Meas FROM price WHERE price.IDnom = dl.IDNom ORDER BY ScanCode DESC) pr");
    Query->SQL->Add("INNER JOIN Delivery d ON d.DocID = dl.DocID");

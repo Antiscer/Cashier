@@ -104,9 +104,9 @@ View1=1
 View2=2
 View3=3
 View4=4
+ClassHierarchy=ClassHierarchy@EditWindow1
 CodeExplorer=CodeExplorer@EditWindow1
 MessageView=MessageView@EditWindow1
-ClassHierarchy=ClassHierarchy@EditWindow1
 Create=1
 Visible=1
 State=1
@@ -179,12 +179,14 @@ View9=14
 View10=15
 View11=16
 View12=17
+CodeExplorer=CodeExplorer@EditWindow0
 MessageView=MessageView@EditWindow0
+ClassHierarchy=ClassHierarchy@EditWindow0
 Create=1
 Visible=1
 State=0
-Left=372
-Top=148
+Left=344
+Top=118
 Width=1060
 Height=675
 MaxLeft=-8
@@ -199,9 +201,9 @@ BottomPanelData=0000040000000000000000000000000000000000000000000001000000000000
 
 [View5]
 Module=C:\Work\Cashier\mainform.cpp
-CursorX=22
-CursorY=5769
-TopLine=5763
+CursorX=57
+CursorY=7596
+TopLine=7587
 LeftCol=1
 
 [View6]
@@ -284,7 +286,7 @@ LeftCol=1
 [View17]
 Module=C:\Work\Cashier\Receipt.h
 CursorX=47
-CursorY=43
+CursorY=42
 TopLine=28
 LeftCol=1
 
@@ -315,9 +317,9 @@ Width=1600
 Height=122
 MaxLeft=-8
 MaxTop=-8
-MaxWidth=1612
+MaxWidth=1616
 MaxHeight=122
-ClientWidth=1596
+ClientWidth=1600
 ClientHeight=84
 
 [ProjectManager]
@@ -472,21 +474,24 @@ TBDockHeight=190
 LRDockWidth=448
 Dockable=1
 
-[MessageView@EditWindow0]
+[ClassHierarchy@EditWindow0]
 Create=1
-Visible=1
+Visible=0
 State=0
-Left=12
-Top=0
-Width=1032
-Height=52
+Left=218
+Top=113
+Width=403
+Height=284
 MaxLeft=-1
 MaxTop=-1
-ClientWidth=1032
-ClientHeight=52
-TBDockHeight=52
-LRDockWidth=443
+ClientWidth=387
+ClientHeight=250
+TBDockHeight=284
+LRDockWidth=403
 Dockable=1
+TreeWidth=121
+Col1Width=120
+Col2Width=120
 
 [ClassHierarchy@EditWindow1]
 Create=1
@@ -506,6 +511,39 @@ Dockable=1
 TreeWidth=121
 Col1Width=120
 Col2Width=120
+
+[CodeExplorer@EditWindow0]
+Create=1
+Visible=0
+State=0
+Left=384
+Top=112
+Width=170
+Height=388
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=154
+ClientHeight=354
+TBDockHeight=388
+LRDockWidth=170
+Dockable=1
+ClassViewDisplayMode=0
+
+[MessageView@EditWindow0]
+Create=1
+Visible=1
+State=0
+Left=12
+Top=0
+Width=1032
+Height=52
+MaxLeft=-1
+MaxTop=-1
+ClientWidth=1032
+ClientHeight=52
+TBDockHeight=52
+LRDockWidth=443
+Dockable=1
 
 [CodeExplorer@EditWindow1]
 Create=1
