@@ -190,8 +190,12 @@ struct DeliveryItems
    bool Found;
    DeliveryItems()
    {
-      this->Quantity = hyper();
-      this->Price = hyper();
+      this->Quantity = 0;
+      this->Price = 0;
+      this->IDNom = "";
+      this->ItemScanCode = "";
+      this->Name = "";
+      this->Measure = "";
    }
    DeliveryItems(AnsiString idnom, AnsiString name, AnsiString sc, unsigned hyper qnty, unsigned hyper price, AnsiString meas, bool found)
    {
@@ -258,8 +262,6 @@ struct Delivery
       this->Items.clear();
    }
 };
-
-
 
 #endif
 
