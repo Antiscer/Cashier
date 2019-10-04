@@ -903,9 +903,6 @@ catch (EOleException &eException)
    AnsiString errormsg = "EOleException: Source=\""+eException.Source+"\" ErrorCode="+IntToStr(eException.ErrorCode)+" Message=\""+eException.Message+"\"" + PriceQuery->SQL->Text;
    log(errormsg);
 }
-   
-   receipt = new Receipt();
-
 
 //Delivery dl = GetDeliveryDoc("035341409908", true);
 //DeliveryPrint(&dl);

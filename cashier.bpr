@@ -6,8 +6,7 @@
     <PROJECT value="cashier.exe"/>
     <OBJFILES value="cashier.obj mainform.obj SelectPayTypeFormUnit.obj clock.obj 
       smartcardreader.obj screensaver.obj scanner.obj cash.obj mstar.obj 
-      CopyRes.obj FreeCheck.obj billprintc.obj frReturn.obj fSverka.obj 
-      Receipt.obj"/>
+      CopyRes.obj FreeCheck.obj billprintc.obj frReturn.obj fSverka.obj"/>
     <RESFILES value="cashier.res"/>
     <IDLFILES value=""/>
     <IDLGENFILES value=""/>
