@@ -20,7 +20,6 @@
 #include "Struct.h"
 #include "frReturnForm.h"
 #include "fSverka.h"
-#include "receipt.h"
 
 #include <ComCtrls.hpp>
 #include <MPlayer.hpp>
@@ -522,7 +521,6 @@ public:		// User declarations
    AnsiString TMainWindow::GetLastDeliveryDoc();
    hyper __fastcall TMainWindow::GetSumDeliveryDoc(std::vector<DeliveryItems> *items);
    std::vector<BillItemLine> __fastcall GetProdItems();
-   Receipt *receipt;
    bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc, int status);
    bool __fastcall TMainWindow::SetFoundStatus(Delivery *doc);
    bool __fastcall TMainWindow::DownFoundStatus(Delivery *doc);
